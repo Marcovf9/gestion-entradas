@@ -1,0 +1,144 @@
+{
+  "blocks": [
+    {
+      "nombre": "Platea Baja",
+      "precio": 25000,
+      "layout": {
+        "type": "grid",
+        "filas": 13,
+        "columnas": 14,
+        "ultimaFilaColumnas": 12
+      }
+    },
+    {
+      "nombre": "Platea VIP Central",
+      "precio": 20000,
+      "layout": {
+        "type": "perRow",
+        "rows": [
+          {
+            "count": 26
+          },
+          {
+            "count": 26
+          },
+          {
+            "count": 26
+          },
+          {
+            "count": 26,
+            "gapAfter": [
+              13
+            ]
+          },
+          {
+            "count": 28,
+            "gapAfter": [
+              14
+            ]
+          },
+          {
+            "count": 30,
+            "gapAfter": [
+              15
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "nombre": "Palco Superior Central",
+      "precio": 20000,
+      "layout": {
+        "type": "perRow",
+        "rows": [
+          {
+            "count": 30
+          }
+        ]
+      }
+    },
+    {
+      "nombre": "Palco VIP A",
+      "precio": 20000,
+      "layout": {
+        "type": "perRow",
+        "rows": [
+          4,
+          5,
+          2,
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "nombre": "Palco VIP B",
+      "precio": 20000,
+      "layout": {
+        "type": "perRow",
+        "rows": [
+          4,
+          5,
+          2,
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "nombre": "Palco Gold A",
+      "precio": 25000,
+      "layout": {
+        "type": "perRow",
+        "rows": [
+          2,
+          3,
+          4,
+          5,
+          5,
+          2
+        ]
+      }
+    },
+    {
+      "nombre": "Palco Gold B",
+      "precio": 25000,
+      "layout": {
+        "type": "perRow",
+        "rows": [
+          2,
+          3,
+          4,
+          5,
+          5,
+          2
+        ]
+      }
+    },
+    {
+      "nombre": "Palco Superior A",
+      "precio": 20000,
+      "layout": {
+        "type": "perRow",
+        "rows": [
+          6,
+          6,
+          6
+        ]
+      }
+    },
+    {
+      "nombre": "Palco Superior B",
+      "precio": 20000,
+      "layout": {
+        "type": "perRow",
+        "rows": [
+          6,
+          6,
+          6
+        ]
+      }
+    }
+  ]
+}
