@@ -1,51 +1,71 @@
 import { PrismaClient } from '@prisma/client';
-import fs from 'fs';
+
 const prisma = new PrismaClient();
 
-function range(n) { return Array.from({length:n}, (_,i)=>i+1); }
+const zonesData = [
+  { nombre: 'VIP', precio: 2500, color: '#f59e0b' },
+  { nombre: 'Platea Baja', precio: 1800, color: '#10b981' },
+  { nombre: 'Platea Alta', precio: 1200, color: '#3b82f6' },
+];
 
-async function main() {
-  await prisma.ventasButacas.deleteMany({});
-  await prisma.venta.deleteMany({});
-  await prisma.butaca.deleteMany({});
-  await prisma.zona.deleteMany({});
-
-  const config = JSON.parse(fs.readFileSync(new URL('../config/zones.json', import.meta.url)));
-  for (const block of config.blocks) {
-    const zona = await prisma.zona.create({ data: { nombre: block.nombre, precio: block.precio } });
-    const layout = block.layout || { type: 'grid', filas: 1, columnas: 1 };
-
-    if (layout.type === 'grid') {
-      const filas = layout.filas;
-      for (const fila of range(filas)) {
-        const columnas = (layout.ultimaFilaColumnas && fila === filas)
-          ? layout.ultimaFilaColumnas
-          : layout.columnas;
-        for (const col of range(columnas)) {
-          await prisma.butaca.create({ data: { zonaId: zona.id, fila, columna: col } });
-        }
-      }
-    } else if (layout.type === 'perRow') {
-      const rows = layout.rows;
-      for (let i=0;i<rows.length;i++) {
-        const fila = i+1;
-        const row = rows[i];
-        const count = typeof row === 'number' ? row : (row.count || 0);
-        for (const col of range(count)) {
-          await prisma.butaca.create({ data: { zonaId: zona.id, fila, columna: col } });
-        }
-      }
-    } else {
-      await prisma.butaca.create({ data: { zonaId: zona.id, fila: 1, columna: 1 } });
+// Función auxiliar para generar butacas
+function generateSeats(zonaId, numRows, seatsPerRow, startRow) {
+  const seats = [];
+  for (let r = 0; r < numRows; r++) {
+    const filaName = String.fromCharCode(65 + startRow + r); // A, B, C...
+    for (let c = 1; c <= seatsPerRow; c++) {
+      seats.push({
+        fila: filaName,
+        columna: c,
+        zonaId: zonaId,
+        disponible: true,
+        // Los campos estadoReserva, reservaHasta y compradorTemp quedan en null por defecto
+      });
     }
-    console.log(`Seeded zona ${block.nombre}`);
   }
+  return seats;
 }
 
-main().then(async () => {
-  await prisma.$disconnect();
-}).catch(async (e) => {
-  console.error(e);
-  await prisma.$disconnect();
-  process.exit(1);
-});
+async function main() {
+  console.log('Start seeding...');
+
+  // 1. Limpiar base de datos
+  await prisma.butaca.deleteMany({});
+  await prisma.venta.deleteMany({});
+  await prisma.zona.deleteMany({});
+
+  // 2. Crear Zonas
+  const createdZones = await Promise.all(
+    zonesData.map(data => prisma.zona.create({ data }))
+  );
+
+  const vipZone = createdZones.find(z => z.nombre === 'VIP');
+  const pbZone = createdZones.find(z => z.nombre === 'Platea Baja');
+  const paZone = createdZones.find(z => z.nombre === 'Platea Alta');
+
+  // 3. Crear Butacas por Zona
+  const allSeats = [
+    // VIP (Filas A-D)
+    ...generateSeats(vipZone.id, 4, 10, 0),
+    // Platea Baja (Filas E-J)
+    ...generateSeats(pbZone.id, 6, 15, 4),
+    // Platea Alta (Filas K-O)
+    ...generateSeats(paZone.id, 5, 20, 10),
+  ];
+
+  await prisma.butaca.createMany({
+    data: allSeats,
+  });
+
+  console.log('Seeding finished.');
+  console.log(`Creadas ${allSeats.length} butacas.`);
+}
+
+main()
+  .catch(e => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

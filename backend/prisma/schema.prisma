@@ -8,37 +8,40 @@ datasource db {
 }
 
 model Zona {
-  id      Int      @id @default(autoincrement())
-  nombre  String
-  precio  Int
-  butacas Butaca[]
-}
+  id        Int      @id @default(autoincrement())
+  nombre    String   @unique
+  precio    Float
+  
+  // ¡CAMPO FALTANTE AGREGADO!
+  color     String 
 
-model Butaca {
-  id        Int   @id @default(autoincrement())
-  zonaId    Int
-  fila      Int
-  columna   Int
-  disponible Boolean @default(true)
-
-  zona      Zona  @relation(fields: [zonaId], references: [id])
-  ventas    VentasButacas[]
+  butacas   Butaca[]
 }
 
 model Venta {
-  id              Int             @id @default(autoincrement())
+  id              String   @id @default(uuid())
   compradorNombre String
   compradorEmail  String
-  total           Int
-  fecha           DateTime        @default(now())
-  butacas         VentasButacas[]
+  fechaVenta      DateTime @default(now())
+  butacas         Butaca[]
 }
 
-model VentasButacas {
-  ventaId  Int
-  butacaId Int
-  venta    Venta  @relation(fields: [ventaId], references: [id])
-  butaca   Butaca @relation(fields: [butacaId], references: [id])
+model Butaca {
+  id             Int      @id @default(autoincrement())
+  fila           String
+  columna        Int
+  zona           Zona     @relation(fields: [zonaId], references: [id])
+  zonaId         Int
 
-  @@id([ventaId, butacaId])
+  disponible     Boolean  @default(true) 
+  
+  estadoReserva  String? // 'RESERVED' si está temporalmente reservada
+  reservaHasta   DateTime? 
+  reservaId      String? 
+  compradorTemp  String? 
+
+  venta          Venta?   @relation(fields: [ventaId], references: [id])
+  ventaId        String?
+
+  @@unique([fila, columna])
 }

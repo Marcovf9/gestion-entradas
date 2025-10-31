@@ -1,30 +1,38 @@
-import 'dotenv/config';
+import 'dotenv/config'; 
 import express from 'express';
 import cors from 'cors';
-import { PrismaClient } from '@prisma/client';
+
+// Importación de rutas
 import seatsRouter from './routes/seats.js';
 import zonesRouter from './routes/zones.js';
-import purchaseRouter from './routes/purchase.js';
+// ¡CORREGIDO! Importamos el router por defecto
+import reservationsRouter from './routes/reservations.js'; 
 
 const app = express();
-const prisma = new PrismaClient();
-
 const PORT = process.env.PORT || 4000;
-const ORIGIN = process.env.ORIGIN || '*';
 
-app.use(cors({ origin: ORIGIN }));
-app.use(express.json());
+// Middleware
+app.use(cors());
+app.use(express.json()); // Permite parsear JSON en el cuerpo de las peticiones
 
-app.get('/', (req, res) => res.send('🎭 API Teatro funcionando. Visita /api/health, /api/zones, /api/seats'));
-app.get('/api/health', (req, res) => res.json({ ok: true }));
-
-app.use('/api/zones', zonesRouter);
-app.use('/api/seats', seatsRouter);
-app.use('/api/purchase', purchaseRouter);
-
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ error: 'Internal Server Error' });
+// Rutas
+app.get('/', (req, res) => {
+  res.send('Tickets App Backend Running');
 });
 
-app.listen(PORT, () => console.log(`Backend listening on port ${PORT}`));
+// Registrar routers
+app.use('/api', seatsRouter);
+app.use('/api', zonesRouter);
+
+// Usamos el router de reservas
+app.use('/api', reservationsRouter); 
+
+
+// Inicialización del servidor
+const startServer = () => {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
+};
+
+startServer();
