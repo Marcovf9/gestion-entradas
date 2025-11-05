@@ -1,144 +1,125 @@
-{
-  "blocks": [
-    {
-      "nombre": "Platea Baja",
-      "precio": 25000,
-      "layout": {
-        "type": "grid",
-        "filas": 13,
-        "columnas": 14,
-        "ultimaFilaColumnas": 12
-      }
-    },
-    {
-      "nombre": "Platea VIP Central",
-      "precio": 20000,
-      "layout": {
-        "type": "perRow",
-        "rows": [
-          {
-            "count": 26
-          },
-          {
-            "count": 26
-          },
-          {
-            "count": 26
-          },
-          {
-            "count": 26,
-            "gapAfter": [
-              13
-            ]
-          },
-          {
-            "count": 28,
-            "gapAfter": [
-              14
-            ]
-          },
-          {
-            "count": 30,
-            "gapAfter": [
-              15
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "nombre": "Palco Superior Central",
-      "precio": 20000,
-      "layout": {
-        "type": "perRow",
-        "rows": [
-          {
-            "count": 30
-          }
-        ]
-      }
-    },
-    {
-      "nombre": "Palco VIP A",
-      "precio": 20000,
-      "layout": {
-        "type": "perRow",
-        "rows": [
-          4,
-          5,
-          2,
-          2,
-          2
-        ]
-      }
-    },
-    {
-      "nombre": "Palco VIP B",
-      "precio": 20000,
-      "layout": {
-        "type": "perRow",
-        "rows": [
-          4,
-          5,
-          2,
-          2,
-          2
-        ]
-      }
-    },
-    {
-      "nombre": "Palco Gold A",
-      "precio": 25000,
-      "layout": {
-        "type": "perRow",
-        "rows": [
-          2,
-          3,
-          4,
-          5,
-          5,
-          2
-        ]
-      }
-    },
-    {
-      "nombre": "Palco Gold B",
-      "precio": 25000,
-      "layout": {
-        "type": "perRow",
-        "rows": [
-          2,
-          3,
-          4,
-          5,
-          5,
-          2
-        ]
-      }
-    },
-    {
-      "nombre": "Palco Superior A",
-      "precio": 20000,
-      "layout": {
-        "type": "perRow",
-        "rows": [
-          6,
-          6,
-          6
-        ]
-      }
-    },
-    {
-      "nombre": "Palco Superior B",
-      "precio": 20000,
-      "layout": {
-        "type": "perRow",
-        "rows": [
-          6,
-          6,
-          6
-        ]
-      }
+[
+  {
+    "id": 1,
+    "nombre": "Platea Baja",
+    "precio": 25000,
+    "color": "#FFC000",
+    "layout": {
+      "type": "grid",
+      "filas": 13,
+      "columnas": 14,
+      "ultimaFilaColumnas": 12
     }
-  ]
-}
+  },
+  {
+    "id": 2,
+    "nombre": "Platea Superior Central",
+    "precio": 20000,
+    "color": "#00AEEF",
+    "layout": {
+      "type": "perRow",
+      "rows": [
+        { "count": 26 },
+        { "count": 28 },
+        { "count": 31 },
+        { "count": 25, "gapAfter": [13] },
+        { "count": 28, "gapAfter": [14] },
+        { "count": 30, "gapAfter": [15] }
+      ]
+    }
+  },
+  {
+    "id": 3,
+    "nombre": "Palco Superior Central",
+    "precio": 20000,
+    "color": "#999999",
+    "layout": {
+      "type": "perRow",
+      "rows": [
+        { "count": 30 }
+      ]
+    }
+  },
+  {
+    "id": 4,
+    "nombre": "Palco VIP Izquierdo",
+    "precio": 20000,
+    "color": "#9400D3",
+    "layout": {
+      "type": "perRow",
+      "rows": [
+        { "count": 3 },
+        { "count": 3 },
+        { "count": 5, "gapAfter": [3] },
+        { "count": 6, "gapAfter": [3] },
+        { "count": 3 },
+        { "count": 2 }
+      ]
+    }
+  },
+  {
+    "id": 5,
+    "nombre": "Palco VIP Derecho",
+    "precio": 20000,
+    "color": "#9400D3",
+    "layout": {
+      "type": "perRow",
+      "rows": [
+        { "count": 3 },
+        { "count": 3 },
+        { "count": 5, "gapAfter": [3] },
+        { "count": 6, "gapAfter": [3] },
+        { "count": 3 },
+        { "count": 2 }
+      ]
+    }
+  },
+  {
+    "id": 6,
+    "nombre": "Palco Inferior Izquierdo",
+    "precio": 25000,
+    "color": "#DC143C",
+    "layout": {
+      "type": "perRow",
+      "rows": [2, 3, 4, 5, 5, 2]
+    }
+  },
+  {
+    "id": 7,
+    "nombre": "Palco Inferior Derecho",
+    "precio": 25000,
+    "color": "#DC143C",
+    "layout": {
+      "type": "perRow",
+      "rows": [2, 3, 4, 5, 5, 2]
+    }
+  },
+  {
+    "id": 8,
+    "nombre": "Palco Superior Izquierdo",
+    "precio": 20000,
+    "color": "#008080",
+    "layout": {
+      "type": "perRow",
+      "rows": [
+        { "count": 7, "gapAfter": [4] },
+        { "count": 7 },
+        { "count": 4 }
+      ]
+    }
+  },
+  {
+    "id": 9,
+    "nombre": "Palco Superior Derecho",
+    "precio": 20000,
+    "color": "#008080",
+    "layout": {
+      "type": "perRow",
+      "rows": [
+        { "count": 7, "gapAfter": [4] },
+        { "count": 7 },
+        { "count": 4 }
+      ]
+    }
+  }
+]
