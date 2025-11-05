@@ -1,7 +1,14 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
 
 export default defineConfig({
   plugins: [react()],
-  server: { port: 5173 }
-})
+  css: {
+    postcss: path.resolve(__dirname, "./postcss.config.js"),
+  },
+  server: {
+    port: 5173,
+    open: true,
+  },
+});

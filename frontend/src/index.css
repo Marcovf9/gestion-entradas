@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.seat {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+}
+
+.seat-row {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}

@@ -28,8 +28,8 @@ model Venta {
 
 model Butaca {
   id             Int      @id @default(autoincrement())
-  fila           String
-  columna        Int
+  fila           Int      
+  columna        Int     
   zona           Zona     @relation(fields: [zonaId], references: [id])
   zonaId         Int
 
@@ -43,5 +43,5 @@ model Butaca {
   venta          Venta?   @relation(fields: [ventaId], references: [id])
   ventaId        String?
 
-  @@unique([fila, columna])
+  @@unique([fila, columna, zonaId]) 
 }

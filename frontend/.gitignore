@@ -1,0 +1,16 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.local
+.env.production
+.env.development
+*.sqlite
+*.db
+
+# Build
+/dist
+/.vite
+.DS_Store

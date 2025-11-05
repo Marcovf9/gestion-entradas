@@ -1,11 +1,12 @@
 export default App;
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
+import SeatMap from "./components/SeatMap"
 
 // URL base de tu backend
 const API_BASE_URL = 'http://localhost:4000/api'; 
 // Número de WhatsApp (debe incluir el código de país sin el + ni 00)
-const WHATSAPP_NUMBER = "5493512345678"; 
+const WHATSAPP_NUMBER = "5493515073081"; 
 const RESERVATION_DURATION_MINUTES = 30;
 
 function App() {
@@ -254,7 +255,8 @@ function App() {
         </h3>
         <div className="flex flex-col gap-1">
           {rows.map(row => (
-            <div key={row} className="flex items-center justify-center">
+            <div key={row} className="flex items-center justify-center"
+              style={{ marginLeft: `${Math.abs(10 - row) * 6}px` }}>
               {/* Número de fila en un pequeño marcador */}
               <span className="w-5 text-right font-mono text-xs mr-1 text-gray-500">{row}</span>
               <div className="flex flex-wrap items-center justify-center border-t border-b border-gray-200">
@@ -316,11 +318,8 @@ function App() {
           {/* Columna 1 & 2: Mapa de Butacas */}
           <div className="lg:col-span-2 order-2 lg:order-1">
               <div className="relative w-full mx-auto bg-gray-200 rounded-xl shadow-2xl p-4 lg:p-6 mb-6">
-                
-                {/* Escenario */}
-                <div className="mb-8 bg-gray-800 text-white rounded-lg shadow-xl text-center py-3 font-semibold tracking-wider text-sm lg:text-lg">
-                  ESCENARIO
-                </div>
+
+                <h2 className="text-center text-xl font-bold bg-gray-800 text-white rounded-lg py-2">ESCENARIO</h2>
                 
                 {/* Contenedor de Zonas/Asientos */}
                 <div className="overflow-x-auto p-2">
