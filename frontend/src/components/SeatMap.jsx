@@ -27,10 +27,65 @@ function buildSeatGrid(seats = []) {
     }));
 }
 
+const ZONE_LAYOUT = {
+  "Platea superior central": {
+    splits: {
+      4: [13, 12],
+      5: [14, 14],
+      6: [15, 15],
+    },
+  },
+  "Palcos VIP A": {
+    splits: {
+      3: [3, 2],
+      4: [3, 3],
+    },
+  },
+  "Palcos VIP B": {
+    splits: {
+      3: [3, 2],
+      4: [3, 3],
+    },
+  },
+  "Palcos superiores A": {
+    splits: {
+      1: [4, 3],
+    },
+  },
+  "Palcos superiores B": {
+    splits: {
+      1: [4, 3],
+    },
+  },
+};
+
 function ZoneBlock({ title, price, zone, className = "", onSeatClick, selectedSeats }) {
   if (!zone) return null;
 
   const rows = buildSeatGrid(zone.seats);
+  const layout = ZONE_LAYOUT[zone.nombre] ?? null;
+
+  function renderSeat(seat) {
+    const isSelected = selectedSeats.some((s) => s.id === seat.id);
+    const isAvailable = seat.disponible;
+
+    let seatClass = "seat seat--available";
+    if (!isAvailable) seatClass = "seat seat--occupied";
+    if (isSelected) seatClass = "seat seat--selected";
+
+    return (
+      <div
+        key={seat.id}
+        className={seatClass}
+        onClick={() => {
+          if (isAvailable) onSeatClick(seat);
+        }}
+        title={`${title} - Fila ${seat.fila}, Butaca ${seat.columna}`}
+      >
+        {seat.columna}
+      </div>
+    );
+  }
 
   return (
     <div className={`zone-block ${className}`}>
@@ -39,31 +94,40 @@ function ZoneBlock({ title, price, zone, className = "", onSeatClick, selectedSe
         <span className="text-[11px] text-gray-600">(${price.toLocaleString("es-AR")} c/u)</span>
       </div>
       <div className="zone-grid">
-        {rows.map((row) => (
-          <div className="seat-row" key={row.fila}>
-            {row.seats.map((seat) => {
-              const isSelected = selectedSeats.some((s) => s.id === seat.id);
-              const isAvailable = seat.disponible;
+        {rows.map((row) => {
+          const splits = layout?.splits?.[row.fila];
+          const isValidSplit =
+            Array.isArray(splits) &&
+            splits.reduce((total, value) => total + value, 0) === row.seats.length;
 
-              let seatClass = "seat seat--available";
-              if (!isAvailable) seatClass = "seat seat--occupied";
-              if (isSelected) seatClass = "seat seat--selected";
+          if (!isValidSplit) {
+            return (
+              <div className="seat-row" key={row.fila}>
+                {row.seats.map((seat) => renderSeat(seat))}
+              </div>
+            );
+          }
 
-              return (
-                <div
-                  key={seat.id}
-                  className={seatClass}
-                  onClick={() => {
-                    if (isAvailable) onSeatClick(seat);
-                  }}
-                  title={`${title} - Fila ${seat.fila}, Butaca ${seat.columna}`}
-                >
-                  {seat.columna}
-                </div>
-              );
-            })}
-          </div>
-        ))}
+          let cursor = 0;
+
+          return (
+            <div className="seat-row seat-row--with-gap" key={row.fila}>
+              {splits.map((segmentSize, index) => {
+                const segmentSeats = row.seats.slice(cursor, cursor + segmentSize);
+                cursor += segmentSize;
+
+                return (
+                  <React.Fragment key={`${row.fila}-segment-${index}`}>
+                    <div className="seat-segment" aria-label={`Fila ${row.fila} - bloque ${index + 1}`}>
+                      {segmentSeats.map((seat) => renderSeat(seat))}
+                    </div>
+                    {index < splits.length - 1 && <div className="seat-gap" aria-hidden="true" />}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

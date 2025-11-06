@@ -94,6 +94,24 @@ h3 {
   gap: 0.18rem;
 }
 
+.seat-row--with-gap {
+  gap: 0;
+  align-items: center;
+}
+
+.seat-segment {
+  display: flex;
+  justify-content: center;
+  gap: 0.18rem;
+}
+
+.seat-gap {
+  width: 0.5rem;
+  height: 0.25rem;
+  margin: 0 0.75rem;
+  flex-shrink: 0;
+}
+
 /* Asiento base */
 .seat {
   @apply w-7 h-7 inline-flex items-center justify-center text-[10px] font-medium rounded-md border bg-white shadow-sm transition-transform transition-colors duration-150 ease-in-out select-none;
