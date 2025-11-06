@@ -1,314 +1,253 @@
-// src/SeatMap.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
-const API_BASE = "http://localhost:4000";
+const API_BASE = "http://localhost:4000/api";
 
-/**
- * Devuelve las filas ordenadas de una zona:
- * [
- *   { fila: 1, seats: [butaca, butaca, ...] },
- *   { fila: 2, seats: [...] },
- * ]
- */
-function buildSeatGrid(seats = []) {
-  const byFila = new Map();
+/** --- Componente de butaca individual --- */
+function Seat({ seat, onClick }) {
+  const { estado } = seat;
 
-  seats.forEach((s) => {
-    const filaNum = Number(s.fila);
-    if (!byFila.has(filaNum)) byFila.set(filaNum, []);
-    byFila.get(filaNum).push(s);
-  });
-
-  return Array.from(byFila.entries())
-    .sort(([a], [b]) => a - b)
-    .map(([fila, filaSeats]) => ({
-      fila,
-      seats: filaSeats.sort((a, b) => a.columna - b.columna),
-    }));
-}
-
-const ZONE_LAYOUT = {
-  "Platea superior central": {
-    splits: {
-      4: [13, 12],
-      5: [14, 14],
-      6: [15, 15],
-    },
-  },
-  "Palcos VIP A": {
-    splits: {
-      3: [3, 2],
-      4: [3, 3],
-    },
-  },
-  "Palcos VIP B": {
-    splits: {
-      3: [3, 2],
-      4: [3, 3],
-    },
-  },
-  "Palcos superiores A": {
-    splits: {
-      1: [4, 3],
-    },
-  },
-  "Palcos superiores B": {
-    splits: {
-      1: [4, 3],
-    },
-  },
-};
-
-function ZoneBlock({ title, price, zone, className = "", onSeatClick, selectedSeats }) {
-  if (!zone) return null;
-
-  const rows = buildSeatGrid(zone.seats);
-  const layout = ZONE_LAYOUT[zone.nombre] ?? null;
-
-  function renderSeat(seat) {
-    const isSelected = selectedSeats.some((s) => s.id === seat.id);
-    const isAvailable = seat.disponible;
-
-    let seatClass = "seat seat--available";
-    if (!isAvailable) seatClass = "seat seat--occupied";
-    if (isSelected) seatClass = "seat seat--selected";
-
-    return (
-      <div
-        key={seat.id}
-        className={seatClass}
-        onClick={() => {
-          if (isAvailable) onSeatClick(seat);
-        }}
-        title={`${title} - Fila ${seat.fila}, Butaca ${seat.columna}`}
-      >
-        {seat.columna}
-      </div>
-    );
-  }
+  let className = "seat";
+  if (estado === "DISPONIBLE") className += " seat--available";
+  if (estado === "RESERVADA") className += " seat--selected";
+  if (estado === "VENDIDA") className += " seat--sold";
 
   return (
-    <div className={`zone-block ${className}`}>
-      <div className="zone-label">
-        <span className="font-semibold">{title}</span>{" "}
-        <span className="text-[11px] text-gray-600">(${price.toLocaleString("es-AR")} c/u)</span>
+    <button
+      type="button"
+      className={className}
+      onClick={onClick}
+      disabled={estado === "VENDIDA"}
+      title={`Fila ${seat.fila}, Asiento ${seat.columna}`}
+    >
+      {seat.columna}
+    </button>
+  );
+}
+
+/** --- Bloque de zona (ej: Platea baja, Palco VIP, etc.) --- */
+function ZoneBlock({ label, price, seats, skew = 0 }) {
+  const rows = useMemo(() => {
+    const map = new Map();
+    seats.forEach((b) => {
+      const key = b.fila;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(b);
+    });
+    const ordered = Array.from(map.entries())
+      .sort((a, b) => a[0] - b[0])
+      .map(([fila, list]) => ({
+        fila,
+        seats: list.sort((a, b) => a.columna - b.columna),
+      }));
+    return ordered;
+  }, [seats]);
+
+  return (
+    <div
+      className="zone-block bg-white shadow-md p-4 rounded-2xl"
+      style={{ transform: `skewY(${skew}deg)` }}
+    >
+      <div className="zone-header mb-2">
+        <h3 className="font-bold text-purple-700">{label}</h3>
+        {price != null && (
+          <span className="zone-price text-sm text-gray-500">
+            ${price.toLocaleString("es-AR")} c/u
+          </span>
+        )}
       </div>
       <div className="zone-grid">
-        {rows.map((row) => {
-          const splits = layout?.splits?.[row.fila];
-          const isValidSplit =
-            Array.isArray(splits) &&
-            splits.reduce((total, value) => total + value, 0) === row.seats.length;
-
-          if (!isValidSplit) {
-            return (
-              <div className="seat-row" key={row.fila}>
-                {row.seats.map((seat) => renderSeat(seat))}
-              </div>
-            );
-          }
-
-          let cursor = 0;
-
-          return (
-            <div className="seat-row seat-row--with-gap" key={row.fila}>
-              {splits.map((segmentSize, index) => {
-                const segmentSeats = row.seats.slice(cursor, cursor + segmentSize);
-                cursor += segmentSize;
-
-                return (
-                  <React.Fragment key={`${row.fila}-segment-${index}`}>
-                    <div className="seat-segment" aria-label={`Fila ${row.fila} - bloque ${index + 1}`}>
-                      {segmentSeats.map((seat) => renderSeat(seat))}
-                    </div>
-                    {index < splits.length - 1 && <div className="seat-gap" aria-hidden="true" />}
-                  </React.Fragment>
-                );
-              })}
+        {rows.map((row) => (
+          <div key={row.fila} className="seat-row flex items-center gap-1">
+            <span className="seat-row-label text-xs text-gray-400 w-3">
+              {row.fila}
+            </span>
+            <div className="seat-row-seats flex gap-1">
+              {row.seats.map((seat) => (
+                <Seat key={seat.id} seat={seat} onClick={seat.onClick} />
+              ))}
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-export default function SeatMap({ onSelectionChange }) {
+/** --- Mapa completo del teatro --- */
+export default function SeatMap() {
   const [zones, setZones] = useState([]);
-  const [selectedSeats, setSelectedSeats] = useState([]);
+  const [seats, setSeats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    async function load() {
+    async function fetchData() {
       try {
         setLoading(true);
-        setError("");
-
         const [zonesRes, seatsRes] = await Promise.all([
-          fetch(`${API_BASE}/api/zones`),
-          fetch(`${API_BASE}/api/seats`),
+          fetch(`${API_BASE}/zones`),
+          fetch(`${API_BASE}/seats`),
         ]);
 
-        if (!zonesRes.ok || !seatsRes.ok) {
-          throw new Error("Error al cargar datos del servidor");
-        }
+        if (!zonesRes.ok || !seatsRes.ok)
+          throw new Error("Error cargando datos del servidor");
 
         const zonesJson = await zonesRes.json();
         const seatsJson = await seatsRes.json();
 
-        // Mapeo zonas por id con sus butacas
-        const map = new Map();
-        zonesJson.forEach((z) => {
-          map.set(z.id, { ...z, seats: [] });
-        });
-        seatsJson.forEach((seat) => {
-          const zona = map.get(seat.zonaId);
-          if (zona) zona.seats.push(seat);
-        });
-
-        setZones(Array.from(map.values()));
+        setZones(zonesJson);
+        setSeats(seatsJson);
+        setError("");
       } catch (err) {
         console.error(err);
-        setError("No se pudo cargar el mapa de butacas.");
+        setError(
+          "No se pudieron cargar las butacas. ¿Está el backend corriendo en el puerto 4000?"
+        );
       } finally {
         setLoading(false);
       }
     }
 
-    load();
+    fetchData();
   }, []);
 
-  function handleSeatClick(seat) {
-    setSelectedSeats((prev) => {
-      const exists = prev.some((s) => s.id === seat.id);
-      let next;
-      if (exists) {
-        next = prev.filter((s) => s.id !== seat.id);
-      } else {
-        next = [...prev, seat];
-      }
-      if (onSelectionChange) {
-        onSelectionChange(next);
-      }
-      return next;
+  const zoneById = useMemo(() => {
+    const map = new Map();
+    zones.forEach((z) => map.set(z.id, z));
+    return map;
+  }, [zones]);
+
+  const seatsByZone = useMemo(() => {
+    const map = new Map();
+    seats.forEach((b) => {
+      if (!map.has(b.zonaId)) map.set(b.zonaId, []);
+      map.get(b.zonaId).push(b);
     });
-  }
+    return map;
+  }, [seats]);
 
-  // Mapa por nombre para usar posiciones específicas
-  const byName = zones.reduce((acc, z) => {
-    acc[z.nombre] = z;
-    return acc;
-  }, {});
+  const withClickHandler = (zoneSeats) =>
+    zoneSeats.map((seat) => ({
+      ...seat,
+      onClick: async () => {
+        try {
+          const res = await fetch(`${API_BASE}/seats/${seat.id}/toggle`, {
+            method: "POST",
+          });
+          if (!res.ok) throw new Error("Error al actualizar butaca");
+          const updated = await res.json();
+          setSeats((prev) =>
+            prev.map((s) =>
+              s.id === updated.id ? { ...s, estado: updated.estado } : s
+            )
+          );
+        } catch (err) {
+          console.error(err);
+          alert("No se pudo actualizar la butaca en el servidor.");
+        }
+      },
+    }));
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center py-16">
-        <p className="text-gray-600 text-sm">Cargando mapa de butacas...</p>
-      </div>
-    );
-  }
+  if (loading) return <p>Cargando mapa de butacas...</p>;
+  if (error) return <p className="error-box text-red-600">{error}</p>;
 
-  if (error) {
-    return (
-      <div className="flex justify-center items-center py-16">
-        <p className="text-red-600 text-sm">{error}</p>
-      </div>
-    );
-  }
+  const getZoneSeats = (name) => {
+    const zona = zones.find((z) => z.nombre === name);
+    if (!zona) return [];
+    const baseSeats = seatsByZone.get(zona.id) || [];
+    return withClickHandler(baseSeats);
+  };
+
+  const price = (name) => zones.find((z) => z.nombre === name)?.precio ?? null;
+
+  // Zonas
+  const plateaBaja = getZoneSeats("Platea baja");
+  const plateaSuperiorCentral = getZoneSeats("Platea superior central");
+  const palcosInfA = getZoneSeats("Palcos inferiores A");
+  const palcosInfB = getZoneSeats("Palcos inferiores B");
+  const palcosVipA = getZoneSeats("Palcos VIP A");
+  const palcosVipB = getZoneSeats("Palcos VIP B");
+  const palcosSupA = getZoneSeats("Palcos superiores A");
+  const palcosSupB = getZoneSeats("Palcos superiores B");
+  const palcoSupCentral = getZoneSeats("Palco superior central");
 
   return (
-    <div className="theatre-wrapper">
-      {/* Banner de ESCENARIO */}
-      <div className="stage-banner">ESCENARIO</div>
+    <div className="theatre-wrapper bg-slate-100 min-h-screen py-6">
+      
+      <p className="text-center text-gray-600 mb-4">
+        Seleccioná tus butacas para el show de fin de año.
+      </p>
 
-      <div className="theatre-layout">
-        {/* PLATEA BAJA */}
-        <ZoneBlock
-          title="Platea baja"
-          price={byName["Platea baja"]?.precio ?? 25000}
-          zone={byName["Platea baja"]}
-          className="zone-platea-baja"
-          onSeatClick={handleSeatClick}
-          selectedSeats={selectedSeats}
-        />
+      {/* 🔔 Aviso reserva */}
+      <div className="bg-amber-100 border border-amber-300 text-amber-800 px-4 py-2 rounded-lg shadow-sm mb-6 text-center max-w-3xl mx-auto">
+        ⚠️ <strong>Proceso Manual:</strong> tus butacas se reservan
+        temporalmente por <strong>30 minutos</strong>. Completá el pago por
+        WhatsApp para confirmar la reserva.
+      </div>
 
-        {/* PLATEA SUPERIOR CENTRAL */}
-        <ZoneBlock
-          title="Platea superior central"
-          price={byName["Platea superior central"]?.precio ?? 20000}
-          zone={byName["Platea superior central"]}
-          className="zone-platea-superior"
-          onSeatClick={handleSeatClick}
-          selectedSeats={selectedSeats}
-        />
+      <div className="stage bg-slate-800 text-white text-center py-2 rounded-full font-semibold mb-6">
+        ESCENARIO
+      </div>
 
-        {/* PALCO SUPERIOR CENTRAL */}
-        <ZoneBlock
-          title="Palco superior central"
-          price={byName["Palco superior central"]?.precio ?? 20000}
-          zone={byName["Palco superior central"]}
-          className="zone-palco-superior-central"
-          onSeatClick={handleSeatClick}
-          selectedSeats={selectedSeats}
-        />
+      <div className="theatre-layout grid grid-cols-3 gap-6 px-10 max-w-[1600px] mx-auto">
+        {/* Izquierda */}
+        <div className="flex flex-col gap-4">
+          <ZoneBlock
+            label="Palcos superiores"
+            price={price("Palcos superiores A")}
+            seats={palcosSupA}
+          />
+          <ZoneBlock
+            label="Palcos inferiores"
+            price={price("Palcos inferiores A")}
+            seats={palcosInfA}
+          />
+          <ZoneBlock
+            label="Palcos VIP"
+            price={price("Palcos VIP A")}
+            seats={palcosVipA}
+            skew={-6}
+          />
+        </div>
 
-        {/* PALCOS INFERIORES */}
-        <ZoneBlock
-          title="Palcos inferiores A"
-          price={byName["Palcos inferiores A"]?.precio ?? 25000}
-          zone={byName["Palcos inferiores A"]}
-          className="zone-palcos-inf-left"
-          onSeatClick={handleSeatClick}
-          selectedSeats={selectedSeats}
-        />
+        {/* Centro */}
+        <div className="flex flex-col gap-4">
+          <ZoneBlock
+            label="Platea baja"
+            price={price("Platea baja")}
+            seats={plateaBaja}
+          />
+          <ZoneBlock
+            label="Platea superior central"
+            price={price("Platea superior central")}
+            seats={plateaSuperiorCentral}
+          />
+          <ZoneBlock
+            label="Palco superior central"
+            price={price("Palco superior central")}
+            seats={palcoSupCentral}
+          />
+        </div>
 
-        <ZoneBlock
-          title="Palcos inferiores B"
-          price={byName["Palcos inferiores B"]?.precio ?? 25000}
-          zone={byName["Palcos inferiores B"]}
-          className="zone-palcos-inf-right"
-          onSeatClick={handleSeatClick}
-          selectedSeats={selectedSeats}
-        />
-
-        {/* PALCOS VIP */}
-        <ZoneBlock
-          title="Palcos VIP A"
-          price={byName["Palcos VIP A"]?.precio ?? 20000}
-          zone={byName["Palcos VIP A"]}
-          className="zone-vip-left"
-          onSeatClick={handleSeatClick}
-          selectedSeats={selectedSeats}
-        />
-
-        <ZoneBlock
-          title="Palcos VIP B"
-          price={byName["Palcos VIP B"]?.precio ?? 20000}
-          zone={byName["Palcos VIP B"]}
-          className="zone-vip-right"
-          onSeatClick={handleSeatClick}
-          selectedSeats={selectedSeats}
-        />
-
-        {/* PALCOS SUPERIORES */}
-        <ZoneBlock
-          title="Palcos superiores A"
-          price={byName["Palcos superiores A"]?.precio ?? 20000}
-          zone={byName["Palcos superiores A"]}
-          className="zone-palcos-sup-left"
-          onSeatClick={handleSeatClick}
-          selectedSeats={selectedSeats}
-        />
-
-        <ZoneBlock
-          title="Palcos superiores B"
-          price={byName["Palcos superiores B"]?.precio ?? 20000}
-          zone={byName["Palcos superiores B"]}
-          className="zone-palcos-sup-right"
-          onSeatClick={handleSeatClick}
-          selectedSeats={selectedSeats}
-        />
+        {/* Derecha */}
+        <div className="flex flex-col gap-4">
+          <ZoneBlock
+            label="Palcos superiores"
+            price={price("Palcos superiores B")}
+            seats={palcosSupB}
+          />
+          <ZoneBlock
+            label="Palcos inferiores"
+            price={price("Palcos inferiores B")}
+            seats={palcosInfB}
+          />
+          <ZoneBlock
+            label="Palcos VIP"
+            price={price("Palcos VIP B")}
+            seats={palcosVipB}
+            skew={6}
+          />
+        </div>
       </div>
     </div>
   );

@@ -1,140 +1,98 @@
 import { PrismaClient } from "@prisma/client";
+
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("🌱 Iniciando seed de zonas y butacas...");
 
-  // Limpieza segura de tablas
-  try { await prisma.reserva.deleteMany(); } catch { console.warn("⚠️ No se pudo limpiar tabla 'reserva'"); }
-  try { await prisma.venta.deleteMany(); } catch { console.warn("⚠️ No se pudo limpiar tabla 'venta'"); }
-  try { await prisma.butaca.deleteMany(); } catch { console.warn("⚠️ No se pudo limpiar tabla 'butaca'"); }
-  try { await prisma.zona.deleteMany(); } catch { console.warn("⚠️ No se pudo limpiar tabla 'zona'"); }
-
-  // --- ZONAS ---
-  const zonasData = [
-    { nombre: "Platea baja", precio: 25000, color: "#f5d742" },
-    { nombre: "Platea superior central", precio: 20000, color: "#4caf50" },
-    { nombre: "Palcos inferiores A", precio: 25000, color: "#ff7043" },
-    { nombre: "Palcos inferiores B", precio: 25000, color: "#ff7043" },
-    { nombre: "Palcos VIP A", precio: 20000, color: "#ab47bc" },
-    { nombre: "Palcos VIP B", precio: 20000, color: "#ab47bc" },
-    { nombre: "Palcos superiores A", precio: 20000, color: "#42a5f5" },
-    { nombre: "Palcos superiores B", precio: 20000, color: "#42a5f5" },
-    { nombre: "Palco superior central", precio: 20000, color: "#26c6da" },
-  ];
-
-  const zonas = await prisma.$transaction(
-    zonasData.map((z) => prisma.zona.create({ data: z }))
-  );
-
-  const butacasData = [];
-
-  // 1️⃣ Platea baja - 13 filas, 14 columnas (última 12)
-  {
-    const zona = zonas.find((z) => z.nombre === "Platea baja");
-    for (let fila = 1; fila <= 13; fila++) {
-      const columnas = fila === 13 ? 12 : 14;
-      for (let columna = 1; columna <= columnas; columna++) {
-        butacasData.push({ fila, columna, zonaId: zona.id, disponible: true });
-      }
-    }
+  // Limpieza básica (por si no es reset total)
+  try {
+    await prisma.butaca.deleteMany();
+    await prisma.zona.deleteMany();
+  } catch (err) {
+    console.warn("⚠️ Error limpiando datos anteriores (puede ser normal en la primera vez)", err.message);
   }
 
-  // 2️⃣ Platea superior central - [26, 28, 31, 25, 28, 30]
-  {
-    const zona = zonas.find((z) => z.nombre === "Platea superior central");
-    const distribucion = [26, 28, 31, 25, 28, 30];
-    distribucion.forEach((colCount, fila) => {
-      for (let columna = 1; columna <= colCount; columna++) {
-        butacasData.push({
-          fila: fila + 1,
-          columna,
-          zonaId: zona.id,
-          disponible: true,
+  // Definición de zonas (cada bloque físico es una zona independiente)
+  const zonasData = [
+    { nombre: "Platea baja", precio: 25000, color: "#f5d742" },            // id 1
+    { nombre: "Platea superior central", precio: 20000, color: "#4caf50" },// id 2
+    { nombre: "Palcos inferiores A", precio: 25000, color: "#ff7043" },    // id 3
+    { nombre: "Palcos inferiores B", precio: 25000, color: "#ff7043" },    // id 4
+    { nombre: "Palcos VIP A", precio: 20000, color: "#ab47bc" },           // id 5
+    { nombre: "Palcos VIP B", precio: 20000, color: "#ab47bc" },           // id 6
+    { nombre: "Palcos superiores A", precio: 20000, color: "#42a5f5" },    // id 7
+    { nombre: "Palcos superiores B", precio: 20000, color: "#42a5f5" },    // id 8
+    { nombre: "Palco superior central", precio: 20000, color: "#26c6da" }  // id 9
+  ];
+
+  await prisma.zona.createMany({ data: zonasData });
+  const zonas = await prisma.zona.findMany();
+  const byName = Object.fromEntries(zonas.map(z => [z.nombre, z.id]));
+
+  const butacas = [];
+
+  // Helper para crear filas consecutivas
+  function addZoneRows(zonaNombre, seatsPerRow) {
+    const zonaId = byName[zonaNombre];
+    seatsPerRow.forEach((count, filaIndex) => {
+      const fila = filaIndex + 1;
+      for (let c = 1; c <= count; c++) {
+        butacas.push({
+          fila,
+          columna: c,
+          zonaId,
+          estado: "DISPONIBLE"
         });
       }
     });
   }
 
-  // 3️⃣ Palcos inferiores A y B - [2,3,4,5,5,2]
-  {
-    const distribucion = [2, 3, 4, 5, 5, 2];
-    for (const nombre of ["Palcos inferiores A", "Palcos inferiores B"]) {
-      const zona = zonas.find((z) => z.nombre === nombre);
-      distribucion.forEach((colCount, fila) => {
-        for (let columna = 1; columna <= colCount; columna++) {
-          butacasData.push({
-            fila: fila + 1,
-            columna,
-            zonaId: zona.id,
-            disponible: true,
-          });
-        }
-      });
-    }
-  }
+  // ---- Distribuciones según tu especificación ----
 
-  // 4️⃣ Palcos VIP A y B - [3,3,5,6,3,2]
-  {
-    const distribucion = [3, 3, 5, 6, 3, 2];
-    for (const nombre of ["Palcos VIP A", "Palcos VIP B"]) {
-      const zona = zonas.find((z) => z.nombre === nombre);
-      distribucion.forEach((colCount, fila) => {
-        for (let columna = 1; columna <= colCount; columna++) {
-          butacasData.push({
-            fila: fila + 1,
-            columna,
-            zonaId: zona.id,
-            disponible: true,
-          });
-        }
-      });
-    }
-  }
+  // Platea baja: 13 filas, 14 columnas, excepto fila 13 con 12
+  const plateaBajaRows = Array(12).fill(14);
+  plateaBajaRows.push(12);
+  addZoneRows("Platea baja", plateaBajaRows);
 
-  // 5️⃣ Palcos superiores A y B - [7,7,4]
-  {
-    const distribucion = [7, 7, 4];
-    for (const nombre of ["Palcos superiores A", "Palcos superiores B"]) {
-      const zona = zonas.find((z) => z.nombre === nombre);
-      distribucion.forEach((colCount, fila) => {
-        for (let columna = 1; columna <= colCount; columna++) {
-          butacasData.push({
-            fila: fila + 1,
-            columna,
-            zonaId: zona.id,
-            disponible: true,
-          });
-        }
-      });
-    }
-  }
+  // Platea superior central
+  addZoneRows("Platea superior central", [26, 28, 31, 25, 28, 30]);
 
-  // 6️⃣ Palco superior central - 1 fila, 30 butacas
-  {
-    const zona = zonas.find((z) => z.nombre === "Palco superior central");
-    for (let columna = 1; columna <= 30; columna++) {
-      butacasData.push({
-        fila: 1,
-        columna,
-        zonaId: zona.id,
-        disponible: true,
-      });
-    }
-  }
+  // Palcos inferiores (A y B) - por lado: [2,3,4,5,5,2]
+  const palcosInferioresRows = [2, 3, 4, 5, 5, 2];
+  addZoneRows("Palcos inferiores A", palcosInferioresRows);
+  addZoneRows("Palcos inferiores B", palcosInferioresRows);
 
-  // Inserta todas las butacas
-  await prisma.butaca.createMany({ data: butacasData });
+  // Palcos VIP (A y B)
+  // Fila 3: 3 butacas + pasillo + 2 butacas (total 5)
+  // Fila 4: 3 butacas + pasillo + 3 butacas (total 6)
+  const palcosVIPRows = [3, 3, 5, 6, 3, 2];
+  addZoneRows("Palcos VIP A", palcosVIPRows);
+  addZoneRows("Palcos VIP B", palcosVIPRows);
 
+  // Palcos superiores (A y B)
+  // Fila1: 4 + pasillo + 3 (7), fila2: 7, fila3:4
+  const palcosSuperioresRows = [7, 7, 4];
+  addZoneRows("Palcos superiores A", palcosSuperioresRows);
+  addZoneRows("Palcos superiores B", palcosSuperioresRows);
+
+  // Palco superior central - 30 butacas en una fila
+  addZoneRows("Palco superior central", [30]);
+
+  // Crear butacas
+  await prisma.butaca.createMany({ data: butacas });
+
+  const totalButacas = await prisma.butaca.count();
   console.log(`✅ Zonas creadas: ${zonas.length}`);
-  console.log(`✅ Butacas creadas: ${butacasData.length}`);
+  console.log(`✅ Butacas creadas: ${totalButacas}`);
   console.log("🌱 Seed completado con éxito!");
 }
 
 main()
-  .then(async () => await prisma.$disconnect())
-  .catch(async (e) => {
+  .catch((e) => {
     console.error(e);
-    await prisma.$disconnect();
     process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
   });

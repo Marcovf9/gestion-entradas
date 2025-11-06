@@ -1,25 +1,24 @@
 {
   "name": "tickets-backend",
-  "version": "2.0.0",
-  "type": "module",
+  "version": "1.0.0",
+  "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
-    "db:seed": "node prisma/seed.js"
-  },
-  "prisma": {
-    "seed": "node prisma/seed.js"
+    "prisma:seed": "node prisma/seed.js"
   },
   "dependencies": {
-    "@prisma/client": "^5.19.1",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "@prisma/client": "^5.22.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.0",
-    "prisma": "^5.19.1"
+    "prisma": "^5.22.0"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   }
 }

@@ -1,38 +1,71 @@
-import 'dotenv/config'; 
-import express from 'express';
-import cors from 'cors';
+import express from "express";
+import cors from "cors";
+import { PrismaClient } from "@prisma/client";
 
-// Importación de rutas
-import seatsRouter from './routes/seats.js';
-import zonesRouter from './routes/zones.js';
-// ¡CORREGIDO! Importamos el router por defecto
-import reservationsRouter from './routes/reservations.js'; 
-
+const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Middleware
 app.use(cors());
-app.use(express.json()); // Permite parsear JSON en el cuerpo de las peticiones
+app.use(express.json());
 
-// Rutas
-app.get('/', (req, res) => {
-  res.send('Tickets App Backend Running');
+// Health check
+app.get("/api/health", (req, res) => {
+  res.json({ ok: true });
 });
 
-// Registrar routers
-app.use('/api', seatsRouter);
-app.use('/api', zonesRouter);
+// Get all zones
+app.get("/api/zones", async (req, res) => {
+  try {
+    const zonas = await prisma.zona.findMany({
+      orderBy: { id: "asc" }
+    });
+    res.json(zonas);
+  } catch (err) {
+    console.error("Error /api/zones", err);
+    res.status(500).json({ error: "Error obteniendo zonas" });
+  }
+});
 
-// Usamos el router de reservas
-app.use('/api', reservationsRouter); 
+// Get all seats
+app.get("/api/seats", async (req, res) => {
+  try {
+    const butacas = await prisma.butaca.findMany({
+      orderBy: [{ zonaId: "asc" }, { fila: "asc" }, { columna: "asc" }]
+    });
+    res.json(butacas);
+  } catch (err) {
+    console.error("Error /api/seats", err);
+    res.status(500).json({ error: "Error obteniendo butacas" });
+  }
+});
 
+// Simple toggle selection (for demo only, not real payments)
+app.post("/api/seats/:id/toggle", async (req, res) => {
+  const id = Number(req.params.id);
+  try {
+    const seat = await prisma.butaca.findUnique({ where: { id } });
+    if (!seat) return res.status(404).json({ error: "Butaca no encontrada" });
 
-// Inicialización del servidor
-const startServer = () => {
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-  });
-};
+    const next =
+      seat.estado === "DISPONIBLE"
+        ? "RESERVADA"
+        : seat.estado === "RESERVADA"
+        ? "DISPONIBLE"
+        : "VENDIDA";
 
-startServer();
+    const updated = await prisma.butaca.update({
+      where: { id },
+      data: { estado: next }
+    });
+
+    res.json(updated);
+  } catch (err) {
+    console.error("Error /api/seats/:id/toggle", err);
+    res.status(500).json({ error: "No se pudo actualizar la butaca" });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`✅ Backend escuchando en http://localhost:${PORT}`);
+});

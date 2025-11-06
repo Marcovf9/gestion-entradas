@@ -1,0 +1,17 @@
+-- CreateTable
+CREATE TABLE "Zona" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "nombre" TEXT NOT NULL,
+    "precio" INTEGER NOT NULL,
+    "color" TEXT NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "Butaca" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "fila" INTEGER NOT NULL,
+    "columna" INTEGER NOT NULL,
+    "zonaId" INTEGER NOT NULL,
+    "estado" TEXT NOT NULL DEFAULT 'DISPONIBLE',
+    CONSTRAINT "Butaca_zonaId_fkey" FOREIGN KEY ("zonaId") REFERENCES "Zona" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);

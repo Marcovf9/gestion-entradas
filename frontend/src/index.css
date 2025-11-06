@@ -1,287 +1,396 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
-/* --- Estilos base --- */
 body {
-  @apply bg-slate-100 text-gray-900;
-}
-
-/* Título grande arriba */
-h1,
-h2,
-h3 {
-  @apply font-sans;
-}
-
-/* Botón principal */
-.btn-primary {
-  @apply bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-emerald-700 transition;
-}
-
-/* Tarjeta (resumen de reserva) */
-.card {
-  @apply bg-white shadow-lg rounded-2xl p-4;
-}
-
-/* Leyenda de colores */
-.legend-box {
-  @apply flex items-center gap-2;
-}
-
-/* ---------- MAPA DEL TEATRO ---------- */
-
-.theatre-wrapper {
-  position: relative;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
-}
-
-/* Banner ESCENARIO arriba del todo */
-.stage-banner {
-  position: relative;
-  margin: 0 auto 1.5rem;
-  max-width: 40rem;
-  border-radius: 9999px;
-  background: #111827;
-  color: #f9fafb;
-  padding: 0.5rem 2.5rem;
-  text-align: center;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.5);
-}
-
-/* Contenedor general del mapa */
-.theatre-layout {
-  position: relative;
-  width: 100%;
-  min-height: 32rem;
-  border-radius: 1.5rem;
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: #e5e7eb;
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
-  padding: 4rem 2rem 4.5rem;
-  display: grid;
-  overflow-x: auto;
-  overflow-y: hidden;
-  grid-template-columns:
-    minmax(0, 0.6fr)
-    minmax(0, 1.45fr)
-    minmax(0, 1.75fr)
-    minmax(0, 1.75fr)
-    minmax(0, 1.45fr)
-    minmax(0, 0.6fr);
-  grid-template-areas:
-    "palcos-sup-left palcos-sup-left . . palcos-sup-right palcos-sup-right"
-    ". platea-baja platea-baja platea-baja platea-baja ."
-    "palcos-inf-left platea-baja platea-baja platea-baja platea-baja palcos-inf-right"
-    "palcos-inf-left platea-superior platea-superior platea-superior platea-superior palcos-inf-right"
-    "vip-left platea-superior platea-superior platea-superior platea-superior vip-right"
-    ". palco-superior-central palco-superior-central palco-superior-central palco-superior-central .";
-  gap: 1.75rem 1.25rem;
-  align-items: start;
-  justify-items: center;
+  color: #111827;
 }
 
-/* Cada bloque de zona */
-.zone-block {
+/* --- Page layout --- */
+
+.page {
+  min-height: 100vh;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.header h1 {
+  font-size: 2.2rem;
+  margin: 0;
+  color: #4338ca;
+}
+
+.header p {
+  margin: 0.25rem 0 0;
+  color: #4b5563;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.2fr);
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* --- Cards --- */
+
+.theatre-card,
+.summary-card {
+  background: #f9fafb;
+  border-radius: 1rem;
+  box-shadow: 0 15px 30px rgba(15, 23, 42, 0.15);
+  padding: 1.5rem 1.5rem 1.75rem;
+}
+
+/* Que nada del mapa se meta en la columna derecha */
+.theatre-card {
+  overflow: hidden;
+}
+
+@media (max-width: 1200px) {
+  .theatre-card {
+    overflow-x: auto;
+  }
+}
+
+/* Summary */
+
+.summary-card h2 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
+.summary-counter,
+.summary-total {
+  font-weight: 600;
+  margin: 0.25rem 0;
+}
+
+.summary-total span {
+  color: #16a34a;
+  font-size: 1.3rem;
+}
+
+.summary-contact {
+  margin-top: 1rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.75rem;
-  padding: 0.75rem 1rem;
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12);
-  width: auto;
+  gap: 0.75rem;
+}
+
+.summary-contact label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.summary-contact input {
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  font-size: 0.95rem;
+}
+
+.summary-contact input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 1px #6366f1;
+}
+
+.btn-primary {
+  margin-top: 1rem;
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border-radius: 999px;
+  border: none;
+  background: #10b981;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.summary-note {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* --- Theatre map --- */
+
+/* IMPORTANTE: wrapper en bloque, no flex */
+.theatre-wrapper {
+  position: relative;
   max-width: 100%;
+  margin: 0 auto 1rem;
 }
 
-/* Título de la zona */
-.zone-label {
-  @apply text-xs text-gray-800;
+/* ESCENARIO centrado arriba, independiente de la grilla */
+.stage {
+  margin: 0 auto 1rem;
+  max-width: 520px;
+  padding: 0.75rem 1rem;
+  background: #111827;
+  color: white;
+  border-radius: 999px;
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 0.08em;
 }
 
-/* Contenedor interno de asientos de una zona */
+/* Grilla principal de zonas (3 columnas) */
+
+.theatre-layout {
+  display: grid;
+  grid-template-columns: 0.85fr 2.3fr 0.85fr;
+  grid-template-rows: auto auto auto auto;
+}
+
+/* --- Posiciones de cada bloque, según tu plano --- */
+
+/* Fila 1: palcos superiores a los lados */
+.psup-left {
+  grid-row: 1;
+  grid-column: 1;
+}
+
+.psup-right {
+  grid-row: 1;
+  grid-column: 3;
+}
+
+/* Fila 2: palcos inferiores + platea baja en el centro */
+.pinf-left {
+  grid-row: 2;
+  grid-column: 1;
+}
+
+.platea-baja {
+  grid-row: 2;
+  grid-column: 2;
+}
+
+.pinf-right {
+  grid-row: 2;
+  grid-column: 3;
+}
+
+/* Fila 3: palcos VIP + platea superior central */
+.pvip-left {
+  grid-row: 3;
+  grid-column: 1;
+  transform: rotate(-3deg);
+}
+
+.platea-sup-central {
+  grid-row: 3;
+  grid-column: 2;
+}
+
+.pvip-right {
+  grid-row: 3;
+  grid-column: 3;
+  transform: rotate(3deg);
+}
+
+/* Fila 4: palco superior central (ancho abajo) */
+.palco-sup-central {
+  grid-row: 4;
+  grid-column: 1 / 4;
+}
+
+/* --- Zone block --- */
+
+.zone {
+  display: flex;
+}
+
+.zone-block {
+  background: #fff;
+  border-radius: 0.9rem;
+  padding: 0.7rem 0.7rem 0.85rem;
+  width: 100%;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+  transform-origin: center;
+}
+
+.zone-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.35rem;
+}
+
+.zone-header h3 {
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.zone-price {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* --- Asientos (achicados para que todo entre sin desbordar) --- */
+
 .zone-grid {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  width: 100%;
+  gap: 0.12rem;
 }
 
-/* Una fila de asientos */
 .seat-row {
   display: flex;
-  justify-content: center;
-  gap: 0.16rem;
-  width: 100%;
-}
-
-.seat-row--with-gap {
-  gap: 0;
   align-items: center;
+  gap: 0.25rem;
 }
 
-.seat-segment {
-  display: flex;
-  justify-content: center;
-  gap: 0.16rem;
-}
-
-.seat-gap {
+.seat-row-label {
+  font-size: 0.65rem;
   width: 1rem;
-  height: 0.25rem;
-  margin: 0 0.9rem;
-  flex-shrink: 0;
+  text-align: right;
+  color: #9ca3af;
 }
 
-.zone-palcos-inf-left .seat-row,
-.zone-vip-left .seat-row,
-.zone-palcos-sup-left .seat-row {
-  justify-content: flex-end;
-}
-
-.zone-palcos-inf-right .seat-row,
-.zone-vip-right .seat-row,
-.zone-palcos-sup-right .seat-row {
-  justify-content: flex-start;
-}
-
-.seat-row--with-gap {
-  gap: 0;
-  align-items: center;
-}
-
-.seat-segment {
+.seat-row-seats {
   display: flex;
-  justify-content: center;
-  gap: 0.18rem;
+  flex-wrap: nowrap;
+  gap: 0.12rem;
 }
 
-.seat-gap {
-  width: 0.5rem;
-  height: 0.25rem;
-  margin: 0 0.75rem;
-  flex-shrink: 0;
-}
-
-/* Asiento base */
 .seat {
-  @apply w-6 h-6 inline-flex items-center justify-center text-[10px] font-medium rounded-md border bg-white shadow-sm transition-transform transition-colors duration-150 ease-in-out select-none;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 0.3rem;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 0.55rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease, box-shadow 0.12s ease,
+    border-color 0.12s ease;
 }
 
-/* Asiento disponible */
 .seat--available {
-  @apply border-emerald-400 text-gray-700 cursor-pointer;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
 }
 
-.seat--available:hover {
-  @apply bg-emerald-100;
-  transform: scale(1.1);
-}
-
-/* Asiento seleccionado */
 .seat--selected {
-  @apply bg-indigo-500 border-indigo-600 text-white cursor-pointer;
+  border-color: #facc15;
+  background: #fef9c3;
 }
 
-/* Asiento ocupado / no disponible */
-.seat--occupied {
-  @apply bg-gray-300 border-gray-300 text-gray-500 cursor-not-allowed;
+.seat--sold {
+  border-color: #d1d5db;
+  background: #e5e7eb;
+  color: #6b7280;
+  cursor: default;
 }
 
-/* ---------- POSICIÓN DE CADA ZONA ---------- */
-
-/* Grande en el centro, debajo del escenario */
-.zone-platea-baja {
-  grid-area: platea-baja;
-  justify-self: center;
+.seat:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18);
 }
 
-/* Justo debajo de Platea baja, un poco más ancho y "curvo" */
-.zone-platea-superior {
-  grid-area: platea-superior;
-  justify-self: center;
+.seat:disabled {
+  cursor: default;
 }
 
-/* En el borde inferior, largo de lado a lado */
-.zone-palco-superior-central {
-  grid-area: palco-superior-central;
-  justify-self: center;
+/* --- Leyenda --- */
+
+.legend-box {
+  margin-top: 1.5rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.9rem;
+  background: #e5e7eb;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
-/* Palcos inferiores izquierda / derecha, cerca de Platea baja */
-.zone-palcos-inf-left {
-  grid-area: palcos-inf-left;
-  justify-self: end;
-  max-width: 260px;
+.legend-box h4 {
+  margin: 0;
+  font-size: 0.85rem;
 }
 
-.zone-palcos-inf-right {
-  grid-area: palcos-inf-right;
-  justify-self: start;
-  max-width: 260px;
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  font-size: 0.8rem;
 }
 
-/* Palcos VIP más abajo, inclinados */
-.zone-vip-left {
-  grid-area: vip-left;
-  justify-self: end;
-  max-width: 260px;
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
-.zone-vip-right {
-  grid-area: vip-right;
-  justify-self: start;
-  max-width: 260px;
+.legend-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 999px;
+  border: 1px solid #9ca3af;
 }
 
-/* Palcos superiores verticales a los lados, más altos */
-.zone-palcos-sup-left {
-  grid-area: palcos-sup-left;
-  justify-self: end;
-  max-width: 220px;
+.legend-available {
+  background: #bbf7d0;
 }
 
-.zone-palcos-sup-right {
-  grid-area: palcos-sup-right;
-  justify-self: start;
-  max-width: 220px;
+.legend-selected {
+  background: #fef9c3;
 }
 
-/* Un poquito de responsivo: en pantallas chicas, apilamos más compacto */
-@media (max-width: 768px) {
-  .theatre-layout {
-    padding: 3rem 1rem 3.5rem;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-areas:
-      "palcos-sup-left palcos-sup-right"
-      "platea-baja platea-baja"
-      "palcos-inf-left palcos-inf-right"
-      "platea-superior platea-superior"
-      "vip-left vip-right"
-      "palco-superior-central palco-superior-central";
-    gap: 1.5rem 1rem;
-  }
+.legend-sold {
+  background: #e5e7eb;
+}
 
-  .zone-block {
-    width: 100%;
-  }
+/* --- Error box --- */
 
-  .zone-palcos-inf-left,
-  .zone-vip-left,
-  .zone-palcos-sup-left {
-    justify-self: center;
-    max-width: none;
-  }
+.error-box {
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.75rem;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 0.9rem;
+}
 
-  .zone-palcos-inf-right,
-  .zone-vip-right,
-  .zone-palcos-sup-right {
-    justify-self: center;
-    max-width: none;
-  }
+/* --- Ajustes finales visuales --- */
+
+/* Escenario centrado con más aire y estilo */
+.stage {
+  margin: 1rem auto 2rem auto; /* 🔹 más espacio arriba y abajo */
+  max-width: 600px;            /* 🔹 un poco más ancho */
+  padding: 1rem 1.2rem;        /* 🔹 más altura */
+  background: #111827;
+  color: white;
+  border-radius: 999px;
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2); /* 🔹 sutil relieve */
 }
