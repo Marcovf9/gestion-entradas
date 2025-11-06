@@ -1,152 +1,250 @@
+// src/SeatMap.jsx
 import React, { useEffect, useState } from "react";
 
-// Mapeo de IDs de zona a nombres de clase CSS para el posicionamiento
-const ZONE_POSITION_MAP = {
-  // Nivel Superior
-  8: "zone-top-left",       // Palco Superior Izquierdo
-  3: "zone-top-center",     // Palco Superior Central
-  9: "zone-top-right",      // Palco Superior Derecho
-  // Nivel Medio (VIP / Platea Superior)
-  4: "zone-middle-left",    // Palco VIP Izquierdo
-  2: "zone-middle-center",  // Platea Superior Central
-  5: "zone-middle-right",   // Palco VIP Derecho
-  // Nivel Inferior (Palcos Inferiores / Platea Baja)
-  6: "zone-bottom-left",    // Palco Inferior Izquierdo
-  1: "zone-bottom-center",  // Platea Baja (Cubre todo el ancho)
-  7: "zone-bottom-right",   // Palco Inferior Derecho
-};
+const API_BASE = "http://localhost:4000";
 
-// Función de ayuda para generar las filas y butacas de una zona
-function renderSeats(zone) {
-  const isGrid = zone.layout.type === "grid";
-  const seatColor = zone.color || "#CCCCCC"; // Usa el color del JSON
+/**
+ * Devuelve las filas ordenadas de una zona:
+ * [
+ *   { fila: 1, seats: [butaca, butaca, ...] },
+ *   { fila: 2, seats: [...] },
+ * ]
+ */
+function buildSeatGrid(seats = []) {
+  const byFila = new Map();
 
-  // Lógica para Platea Baja (type: 'grid')
-  if (isGrid) {
-    const { filas, columnas, ultimaFilaColumnas } = zone.layout;
-    return [...Array(filas)].map((_, filaIndex) => {
-      // La última fila tiene un número diferente de butacas
-      const cols = filaIndex === filas - 1 ? ultimaFilaColumnas : columnas;
-      const key = `${zone.nombre}-row-${filaIndex}`;
+  seats.forEach((s) => {
+    const filaNum = Number(s.fila);
+    if (!byFila.has(filaNum)) byFila.set(filaNum, []);
+    byFila.get(filaNum).push(s);
+  });
 
-      return (
-        <div key={key} className="flex justify-center gap-[2px]">
-          {[...Array(cols)].map((_, colIndex) => (
-            <div
-              key={`${key}-col-${colIndex}`}
-              className="w-4 h-4 rounded-sm transition"
-              style={{ backgroundColor: seatColor }}
-            ></div>
-          ))}
-        </div>
-      );
+  return Array.from(byFila.entries())
+    .sort(([a], [b]) => a - b)
+    .map(([fila, filaSeats]) => ({
+      fila,
+      seats: filaSeats.sort((a, b) => a.columna - b.columna),
+    }));
+}
+
+function ZoneBlock({ title, price, zone, className = "", onSeatClick, selectedSeats }) {
+  if (!zone) return null;
+
+  const rows = buildSeatGrid(zone.seats);
+
+  return (
+    <div className={`zone-block ${className}`}>
+      <div className="zone-label">
+        <span className="font-semibold">{title}</span>{" "}
+        <span className="text-[11px] text-gray-600">(${price.toLocaleString("es-AR")} c/u)</span>
+      </div>
+      <div className="zone-grid">
+        {rows.map((row) => (
+          <div className="seat-row" key={row.fila}>
+            {row.seats.map((seat) => {
+              const isSelected = selectedSeats.some((s) => s.id === seat.id);
+              const isAvailable = seat.disponible;
+
+              let seatClass = "seat seat--available";
+              if (!isAvailable) seatClass = "seat seat--occupied";
+              if (isSelected) seatClass = "seat seat--selected";
+
+              return (
+                <div
+                  key={seat.id}
+                  className={seatClass}
+                  onClick={() => {
+                    if (isAvailable) onSeatClick(seat);
+                  }}
+                  title={`${title} - Fila ${seat.fila}, Butaca ${seat.columna}`}
+                >
+                  {seat.columna}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function SeatMap({ onSelectionChange }) {
+  const [zones, setZones] = useState([]);
+  const [selectedSeats, setSelectedSeats] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function load() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const [zonesRes, seatsRes] = await Promise.all([
+          fetch(`${API_BASE}/api/zones`),
+          fetch(`${API_BASE}/api/seats`),
+        ]);
+
+        if (!zonesRes.ok || !seatsRes.ok) {
+          throw new Error("Error al cargar datos del servidor");
+        }
+
+        const zonesJson = await zonesRes.json();
+        const seatsJson = await seatsRes.json();
+
+        // Mapeo zonas por id con sus butacas
+        const map = new Map();
+        zonesJson.forEach((z) => {
+          map.set(z.id, { ...z, seats: [] });
+        });
+        seatsJson.forEach((seat) => {
+          const zona = map.get(seat.zonaId);
+          if (zona) zona.seats.push(seat);
+        });
+
+        setZones(Array.from(map.values()));
+      } catch (err) {
+        console.error(err);
+        setError("No se pudo cargar el mapa de butacas.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    load();
+  }, []);
+
+  function handleSeatClick(seat) {
+    setSelectedSeats((prev) => {
+      const exists = prev.some((s) => s.id === seat.id);
+      let next;
+      if (exists) {
+        next = prev.filter((s) => s.id !== seat.id);
+      } else {
+        next = [...prev, seat];
+      }
+      if (onSelectionChange) {
+        onSelectionChange(next);
+      }
+      return next;
     });
   }
 
-  // Lógica para Palcos y Platea Superior Central (type: 'perRow')
-  const rowsData = zone.layout.rows;
-  return rowsData.map((rowConfig, rowIndex) => {
-    // Maneja si la fila es un número simple (Palcos Inferiores) o un objeto
-    const butacaCount = typeof rowConfig === 'number' ? rowConfig : rowConfig.count;
-    // El pasillo se pone DESPUÉS de la butaca en la posición gapAfter[0]. Usamos -1 si no hay pasillo.
-    const gapAfterIndex = typeof rowConfig === 'object' && rowConfig.gapAfter ? rowConfig.gapAfter[0] : -1;
-    const key = `${zone.nombre}-row-${rowIndex}`;
+  // Mapa por nombre para usar posiciones específicas
+  const byName = zones.reduce((acc, z) => {
+    acc[z.nombre] = z;
+    return acc;
+  }, {});
 
-    const seatsInRow = [];
-    
-    for (let i = 0; i < butacaCount; i++) {
-        // Asiento normal
-        seatsInRow.push(
-            <div
-                key={`${key}-seat-${i}`}
-                className="w-4 h-4 rounded-sm transition hover:scale-110"
-                style={{ backgroundColor: seatColor }}
-            ></div>
-        );
-
-        // Insertar pasillo después de la butaca actual si corresponde
-        // El asiento que acabamos de pintar es el número i + 1.
-        if (gapAfterIndex !== -1 && i + 1 === gapAfterIndex) {
-            // Pasillo (un espacio invisible más ancho)
-            seatsInRow.push(
-                <div key={`${key}-gap`} className="w-6 h-4"></div>
-            );
-        }
-    }
-
+  if (loading) {
     return (
-      <div key={key} className="flex justify-center gap-[2px]">
-        {seatsInRow}
+      <div className="flex justify-center items-center py-16">
+        <p className="text-gray-600 text-sm">Cargando mapa de butacas...</p>
       </div>
     );
-  });
-}
+  }
 
-export default function SeatMap() {
-  const [zones, setZones] = useState([]);
-
-  useEffect(() => {
-    fetch("http://localhost:4000/api/zones")
-      .then((res) => res.json())
-      .then((data) => {
-        // CRÍTICO: Asignar IDs para que coincidan con el mapa de posiciones
-        const zonesWithId = data.map((zone, index) => ({
-            ...zone,
-            // Asume que el backend devuelve las zonas en el mismo orden que están en el JSON (id 1 a 9)
-            id: index + 1
-        }));
-        setZones(zonesWithId);
-      })
-      .catch((err) => console.error("Error cargando zonas:", err));
-  }, []);
+  if (error) {
+    return (
+      <div className="flex justify-center items-center py-16">
+        <p className="text-red-600 text-sm">{error}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col items-center bg-gray-100 p-6 min-h-screen">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">
-        Mapa de Butacas 🎭
-      </h1>
+    <div className="theatre-wrapper">
+      {/* Banner de ESCENARIO */}
+      <div className="stage-banner">ESCENARIO</div>
 
-      <div className="relative bg-gray-200 p-8 rounded-lg shadow-lg w-full max-w-6xl min-h-[80vh]">
-        
-        {/* ESCENARIO */}
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-gray-700 text-white px-8 py-2 rounded-md z-10 font-bold">
-          ESCENARIO
-        </div>
-        
-        {/* CONTENEDOR PRINCIPAL: Usa la clase CSS Grid para el posicionamiento espacial */}
-        <div className="seat-zones-grid mt-16">
-          {/* Renderizar todas las zonas dinámicamente */}
-          {zones.map((zone) => (
-            <div 
-              key={zone.id} 
-              // CRÍTICO: Aquí se aplica la clase de posición CSS
-              className={`seat-zone-container ${ZONE_POSITION_MAP[zone.id]}`}
-            >
-              <div className="flex flex-col items-center p-2 rounded-lg shadow-md bg-opacity-70"
-                   // Usamos el color real de la zona
-                   style={{ backgroundColor: zone.color || "#CCCCCC" }}> 
-                <h3 className="font-semibold text-gray-800 text-xs text-center mb-1">
-                  {zone.nombre} (${zone.precio / 1000}k)
-                </h3>
-                <div className="flex flex-col space-y-1 text-center">
-                  {renderSeats(zone)}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <div className="theatre-layout">
+        {/* PLATEA BAJA */}
+        <ZoneBlock
+          title="Platea baja"
+          price={byName["Platea baja"]?.precio ?? 25000}
+          zone={byName["Platea baja"]}
+          className="zone-platea-baja"
+          onSeatClick={handleSeatClick}
+          selectedSeats={selectedSeats}
+        />
 
-      <div className="mt-8 text-sm text-gray-600 text-center">
-        {/* Leyenda de colores */}
-        <p>
-          <span className="font-semibold" style={{ color: "#FFC000" }}>Platea Baja</span> ·
-          <span className="font-semibold" style={{ color: "#00AEEF" }}> Platea Sup. Central</span> ·
-          <span className="font-semibold" style={{ color: "#999999" }}> Palco Sup. Central</span> ·
-          <span className="font-semibold" style={{ color: "#9400D3" }}> Palcos VIP</span> ·
-          <span className="font-semibold" style={{ color: "#DC143C" }}> Palcos Inferiores</span> ·
-          <span className="font-semibold" style={{ color: "#008080" }}> Palcos Superiores</span> 
-        </p>
+        {/* PLATEA SUPERIOR CENTRAL */}
+        <ZoneBlock
+          title="Platea superior central"
+          price={byName["Platea superior central"]?.precio ?? 20000}
+          zone={byName["Platea superior central"]}
+          className="zone-platea-superior"
+          onSeatClick={handleSeatClick}
+          selectedSeats={selectedSeats}
+        />
+
+        {/* PALCO SUPERIOR CENTRAL */}
+        <ZoneBlock
+          title="Palco superior central"
+          price={byName["Palco superior central"]?.precio ?? 20000}
+          zone={byName["Palco superior central"]}
+          className="zone-palco-superior-central"
+          onSeatClick={handleSeatClick}
+          selectedSeats={selectedSeats}
+        />
+
+        {/* PALCOS INFERIORES */}
+        <ZoneBlock
+          title="Palcos inferiores A"
+          price={byName["Palcos inferiores A"]?.precio ?? 25000}
+          zone={byName["Palcos inferiores A"]}
+          className="zone-palcos-inf-left"
+          onSeatClick={handleSeatClick}
+          selectedSeats={selectedSeats}
+        />
+
+        <ZoneBlock
+          title="Palcos inferiores B"
+          price={byName["Palcos inferiores B"]?.precio ?? 25000}
+          zone={byName["Palcos inferiores B"]}
+          className="zone-palcos-inf-right"
+          onSeatClick={handleSeatClick}
+          selectedSeats={selectedSeats}
+        />
+
+        {/* PALCOS VIP */}
+        <ZoneBlock
+          title="Palcos VIP A"
+          price={byName["Palcos VIP A"]?.precio ?? 20000}
+          zone={byName["Palcos VIP A"]}
+          className="zone-vip-left"
+          onSeatClick={handleSeatClick}
+          selectedSeats={selectedSeats}
+        />
+
+        <ZoneBlock
+          title="Palcos VIP B"
+          price={byName["Palcos VIP B"]?.precio ?? 20000}
+          zone={byName["Palcos VIP B"]}
+          className="zone-vip-right"
+          onSeatClick={handleSeatClick}
+          selectedSeats={selectedSeats}
+        />
+
+        {/* PALCOS SUPERIORES */}
+        <ZoneBlock
+          title="Palcos superiores A"
+          price={byName["Palcos superiores A"]?.precio ?? 20000}
+          zone={byName["Palcos superiores A"]}
+          className="zone-palcos-sup-left"
+          onSeatClick={handleSeatClick}
+          selectedSeats={selectedSeats}
+        />
+
+        <ZoneBlock
+          title="Palcos superiores B"
+          price={byName["Palcos superiores B"]?.precio ?? 20000}
+          zone={byName["Palcos superiores B"]}
+          className="zone-palcos-sup-right"
+          onSeatClick={handleSeatClick}
+          selectedSeats={selectedSeats}
+        />
       </div>
     </div>
   );

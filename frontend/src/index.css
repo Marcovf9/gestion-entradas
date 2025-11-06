@@ -2,99 +2,219 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CRÍTICO: Definimos nuestras clases personalizadas dentro de @layer utilities 
-  para asegurar que no sean purgadas y que tengan alta prioridad.
-*/
-@layer utilities {
-  .seat-zones-grid {
-    /* Forzamos la visualización de la cuadrícula anulando cualquier regla previa */
-    display: grid !important; 
-    
-    /* Reglas de la grilla */
-    grid-template-columns: 1fr 2.5fr 1fr; 
-    grid-template-rows: auto auto auto; 
-    gap: 15px;
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding-top: 20px;
-  }
-
-  .seat-zone-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 10px;
-  }
-  
-  /* --- Posicionamiento de Zonas (Ya incluidas en tu versión anterior) --- */
-
-  /* Nivel 1: Superior */
-  .zone-top-left {
-      grid-column: 1 / 2;
-      grid-row: 1 / 2;
-      transform: rotate(-5deg);
-  }
-  .zone-top-center {
-      grid-column: 2 / 3;
-      grid-row: 1 / 2;
-  }
-  .zone-top-right {
-      grid-column: 3 / 4;
-      grid-row: 1 / 2;
-      transform: rotate(5deg);
-  }
-
-  /* Nivel 2: Medio (VIP / Platea Superior) */
-  .zone-middle-left {
-      grid-column: 1 / 2;
-      grid-row: 2 / 3;
-      transform: rotate(-10deg);
-      margin-top: 20px;
-  }
-  .zone-middle-center {
-      grid-column: 2 / 3;
-      grid-row: 2 / 3;
-      margin-top: 20px;
-  }
-  .zone-middle-right {
-      grid-column: 3 / 4;
-      grid-row: 2 / 3;
-      transform: rotate(10deg);
-      margin-top: 20px;
-  }
-
-  /* Nivel 3: Inferior (Platea Baja / Palcos Inferiores) */
-  .zone-bottom-left {
-      grid-column: 1 / 2;
-      grid-row: 3 / 4;
-      transform: rotate(-15deg);
-      margin-top: 30px;
-  }
-  .zone-bottom-center {
-      /* Ocupa las 3 columnas, centrado */
-      grid-column: 1 / 4; 
-      grid-row: 3 / 4;
-      display: flex;
-      justify-content: center;
-      margin-top: 40px; 
-  }
-  .zone-bottom-right {
-      grid-column: 3 / 4;
-      grid-row: 3 / 4;
-      transform: rotate(15deg);
-      margin-top: 30px;
-  }
+/* --- Estilos base --- */
+body {
+  @apply bg-slate-100 text-gray-900;
 }
 
-/* Opcional: Estilos para las butacas */
-.seat {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
+/* Título grande arriba */
+h1,
+h2,
+h3 {
+  @apply font-sans;
 }
+
+/* Botón principal */
+.btn-primary {
+  @apply bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-emerald-700 transition;
+}
+
+/* Tarjeta (resumen de reserva) */
+.card {
+  @apply bg-white shadow-lg rounded-2xl p-4;
+}
+
+/* Leyenda de colores */
+.legend-box {
+  @apply flex items-center gap-2;
+}
+
+/* ---------- MAPA DEL TEATRO ---------- */
+
+.theatre-wrapper {
+  position: relative;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 0 4rem;
+}
+
+/* Banner ESCENARIO arriba del todo */
+.stage-banner {
+  position: relative;
+  margin: 0 auto 1.5rem;
+  max-width: 28rem;
+  border-radius: 9999px;
+  background: #111827;
+  color: #f9fafb;
+  padding: 0.5rem 2.5rem;
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.5);
+}
+
+/* Contenedor general del mapa */
+.theatre-layout {
+  position: relative;
+  width: 100%;
+  min-height: 32rem;
+  border-radius: 1.5rem;
+  background: #e5e7eb;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+  padding: 4rem 1.5rem 4.5rem;
+  overflow: hidden;
+}
+
+/* Cada bloque de zona */
+.zone-block {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+}
+
+/* Título de la zona */
+.zone-label {
+  @apply text-xs text-gray-800;
+}
+
+/* Contenedor interno de asientos de una zona */
+.zone-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+/* Una fila de asientos */
 .seat-row {
   display: flex;
   justify-content: center;
-  gap: 4px;
+  gap: 0.18rem;
+}
+
+/* Asiento base */
+.seat {
+  @apply w-7 h-7 inline-flex items-center justify-center text-[10px] font-medium rounded-md border bg-white shadow-sm transition-transform transition-colors duration-150 ease-in-out select-none;
+}
+
+/* Asiento disponible */
+.seat--available {
+  @apply border-emerald-400 text-gray-700 cursor-pointer;
+}
+
+.seat--available:hover {
+  @apply bg-emerald-100;
+  transform: scale(1.1);
+}
+
+/* Asiento seleccionado */
+.seat--selected {
+  @apply bg-indigo-500 border-indigo-600 text-white cursor-pointer;
+}
+
+/* Asiento ocupado / no disponible */
+.seat--occupied {
+  @apply bg-gray-300 border-gray-300 text-gray-500 cursor-not-allowed;
+}
+
+/* ---------- POSICIÓN DE CADA ZONA ---------- */
+
+/* Grande en el centro, debajo del escenario */
+.zone-platea-baja {
+  top: 4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 68%;
+}
+
+/* Justo debajo de Platea baja, un poco más ancho y "curvo" */
+.zone-platea-superior {
+  top: 12rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+}
+
+/* En el borde inferior, largo de lado a lado */
+.zone-palco-superior-central {
+  bottom: 1.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 82%;
+}
+
+/* Palcos inferiores izquierda / derecha, cerca de Platea baja */
+.zone-palcos-inf-left {
+  top: 5rem;
+  left: 6%;
+  transform: rotate(-10deg);
+}
+
+.zone-palcos-inf-right {
+  top: 5rem;
+  right: 6%;
+  transform: rotate(10deg);
+}
+
+/* Palcos VIP más abajo, inclinados */
+.zone-vip-left {
+  top: 16rem;
+  left: 10%;
+  transform: rotate(-14deg);
+}
+
+.zone-vip-right {
+  top: 16rem;
+  right: 10%;
+  transform: rotate(14deg);
+}
+
+/* Palcos superiores verticales a los lados, más altos */
+.zone-palcos-sup-left {
+  top: 1.5rem;
+  left: 1.2rem;
+}
+
+.zone-palcos-sup-right {
+  top: 1.5rem;
+  right: 1.2rem;
+}
+
+/* Un poquito de responsivo: en pantallas chicas, apilamos más compacto */
+@media (max-width: 768px) {
+  .theatre-layout {
+    padding-inline: 0.75rem;
+    padding-top: 3.5rem;
+    min-height: 30rem;
+  }
+
+  .zone-platea-baja {
+    width: 90%;
+  }
+
+  .zone-platea-superior {
+    width: 96%;
+  }
+
+  .zone-palco-superior-central {
+    width: 95%;
+  }
+
+  .zone-palcos-inf-left {
+    left: 3%;
+  }
+
+  .zone-palcos-inf-right {
+    right: 3%;
+  }
+
+  .zone-vip-left {
+    left: 4%;
+  }
+
+  .zone-vip-right {
+    right: 4%;
+  }
 }
