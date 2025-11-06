@@ -2,88 +2,99 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ------------------------------------- */
-/* --- Layout de la Sala (CSS Grid) --- */
-/* ------------------------------------- */
+/* CRÍTICO: Definimos nuestras clases personalizadas dentro de @layer utilities 
+  para asegurar que no sean purgadas y que tengan alta prioridad.
+*/
+@layer utilities {
+  .seat-zones-grid {
+    /* Forzamos la visualización de la cuadrícula anulando cualquier regla previa */
+    display: grid !important; 
+    
+    /* Reglas de la grilla */
+    grid-template-columns: 1fr 2.5fr 1fr; 
+    grid-template-rows: auto auto auto; 
+    gap: 15px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 20px;
+  }
 
-.seat-zones-grid {
-  /* Habilita el modo cuadrícula */
-  display: grid;
-  /* Define 3 columnas: 1fr (izq) 2.5fr (centro) 1fr (der) para el espacio relativo */
-  grid-template-columns: 1fr 2.5fr 1fr; 
-  /* Define 3 filas: auto (Superior), auto (Medio/VIP), auto (Inferior/Platea) */
-  grid-template-rows: auto auto auto; 
-  gap: 15px; /* Espacio entre contenedores de zona */
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding-top: 20px;
+  .seat-zone-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px;
+  }
+  
+  /* --- Posicionamiento de Zonas (Ya incluidas en tu versión anterior) --- */
+
+  /* Nivel 1: Superior */
+  .zone-top-left {
+      grid-column: 1 / 2;
+      grid-row: 1 / 2;
+      transform: rotate(-5deg);
+  }
+  .zone-top-center {
+      grid-column: 2 / 3;
+      grid-row: 1 / 2;
+  }
+  .zone-top-right {
+      grid-column: 3 / 4;
+      grid-row: 1 / 2;
+      transform: rotate(5deg);
+  }
+
+  /* Nivel 2: Medio (VIP / Platea Superior) */
+  .zone-middle-left {
+      grid-column: 1 / 2;
+      grid-row: 2 / 3;
+      transform: rotate(-10deg);
+      margin-top: 20px;
+  }
+  .zone-middle-center {
+      grid-column: 2 / 3;
+      grid-row: 2 / 3;
+      margin-top: 20px;
+  }
+  .zone-middle-right {
+      grid-column: 3 / 4;
+      grid-row: 2 / 3;
+      transform: rotate(10deg);
+      margin-top: 20px;
+  }
+
+  /* Nivel 3: Inferior (Platea Baja / Palcos Inferiores) */
+  .zone-bottom-left {
+      grid-column: 1 / 2;
+      grid-row: 3 / 4;
+      transform: rotate(-15deg);
+      margin-top: 30px;
+  }
+  .zone-bottom-center {
+      /* Ocupa las 3 columnas, centrado */
+      grid-column: 1 / 4; 
+      grid-row: 3 / 4;
+      display: flex;
+      justify-content: center;
+      margin-top: 40px; 
+  }
+  .zone-bottom-right {
+      grid-column: 3 / 4;
+      grid-row: 3 / 4;
+      transform: rotate(15deg);
+      margin-top: 30px;
+  }
 }
 
-.seat-zone-container {
-    /* Ayuda a centrar el contenido y aplica el padding y las rotaciones */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px;
-    /* Necesario para posicionar cada zona en la cuadrícula */
+/* Opcional: Estilos para las butacas */
+.seat {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
 }
-
-/* --- Posicionamiento de Zonas (Grid Row / Grid Column) --- */
-
-/* Nivel 1: Superior (Fila 1 de la cuadrícula) */
-.zone-top-left {
-    grid-column: 1 / 2; /* Columna 1 */
-    grid-row: 1 / 2;     /* Fila 1 */
-    transform: rotate(-5deg);
-}
-.zone-top-center {
-    grid-column: 2 / 3; /* Columna 2 */
-    grid-row: 1 / 2;     /* Fila 1 */
-}
-.zone-top-right {
-    grid-column: 3 / 4; /* Columna 3 */
-    grid-row: 1 / 2;     /* Fila 1 */
-    transform: rotate(5deg);
-}
-
-/* Nivel 2: Medio (VIP / Platea Superior) (Fila 2 de la cuadrícula) */
-.zone-middle-left {
-    grid-column: 1 / 2;
-    grid-row: 2 / 3;
-    transform: rotate(-10deg);
-    margin-top: 20px;
-}
-.zone-middle-center {
-    grid-column: 2 / 3;
-    grid-row: 2 / 3;
-    margin-top: 20px;
-}
-.zone-middle-right {
-    grid-column: 3 / 4;
-    grid-row: 2 / 3;
-    transform: rotate(10deg);
-    margin-top: 20px;
-}
-
-/* Nivel 3: Inferior (Platea Baja / Palcos Inferiores) (Fila 3 de la cuadrícula) */
-.zone-bottom-left {
-    grid-column: 1 / 2;
-    grid-row: 3 / 4;
-    transform: rotate(-15deg);
-    margin-top: 30px;
-}
-.zone-bottom-center {
-    /* CRÍTICO: Ocupa las 3 columnas, pero se queda en la Fila 3 */
-    grid-column: 1 / 4; 
-    grid-row: 3 / 4;
-    display: flex; /* Para que Platea Baja se centre dentro de este espacio de 3 columnas */
-    justify-content: center;
-    margin-top: 40px; 
-}
-.zone-bottom-right {
-    grid-column: 3 / 4;
-    grid-row: 3 / 4;
-    transform: rotate(15deg);
-    margin-top: 30px;
+.seat-row {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
 }
