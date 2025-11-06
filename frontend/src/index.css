@@ -33,16 +33,16 @@ h3 {
 
 .theatre-wrapper {
   position: relative;
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 0 4rem;
+  padding: 2rem 1.5rem 4rem;
 }
 
 /* Banner ESCENARIO arriba del todo */
 .stage-banner {
   position: relative;
   margin: 0 auto 1.5rem;
-  max-width: 28rem;
+  max-width: 40rem;
   border-radius: 9999px;
   background: #111827;
   color: #f9fafb;
@@ -61,18 +61,42 @@ h3 {
   border-radius: 1.5rem;
   background: #e5e7eb;
   box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
-  padding: 4rem 1.5rem 4.5rem;
-  overflow: hidden;
+  padding: 4rem 2rem 4.5rem;
+  display: grid;
+  overflow-x: auto;
+  overflow-y: hidden;
+  grid-template-columns:
+    minmax(0, 0.6fr)
+    minmax(0, 1.45fr)
+    minmax(0, 1.75fr)
+    minmax(0, 1.75fr)
+    minmax(0, 1.45fr)
+    minmax(0, 0.6fr);
+  grid-template-areas:
+    "palcos-sup-left palcos-sup-left . . palcos-sup-right palcos-sup-right"
+    ". platea-baja platea-baja platea-baja platea-baja ."
+    "palcos-inf-left platea-baja platea-baja platea-baja platea-baja palcos-inf-right"
+    "palcos-inf-left platea-superior platea-superior platea-superior platea-superior palcos-inf-right"
+    "vip-left platea-superior platea-superior platea-superior platea-superior vip-right"
+    ". palco-superior-central palco-superior-central palco-superior-central palco-superior-central .";
+  gap: 1.75rem 1.25rem;
+  align-items: start;
+  justify-items: center;
 }
 
 /* Cada bloque de zona */
 .zone-block {
-  position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.35rem;
   font-size: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12);
+  width: auto;
+  max-width: 100%;
 }
 
 /* Título de la zona */
@@ -84,19 +108,51 @@ h3 {
 .zone-grid {
   display: flex;
   flex-direction: column;
-  gap: 0.18rem;
+  gap: 0.2rem;
+  width: 100%;
 }
 
 /* Una fila de asientos */
 .seat-row {
   display: flex;
   justify-content: center;
-  gap: 0.18rem;
+  gap: 0.16rem;
+  width: 100%;
+}
+
+.seat-row--with-gap {
+  gap: 0;
+  align-items: center;
+}
+
+.seat-segment {
+  display: flex;
+  justify-content: center;
+  gap: 0.16rem;
+}
+
+.seat-gap {
+  width: 1rem;
+  height: 0.25rem;
+  margin: 0 0.9rem;
+  flex-shrink: 0;
+}
+
+.zone-palcos-inf-left .seat-row,
+.zone-vip-left .seat-row,
+.zone-palcos-sup-left .seat-row {
+  justify-content: flex-end;
+}
+
+.zone-palcos-inf-right .seat-row,
+.zone-vip-right .seat-row,
+.zone-palcos-sup-right .seat-row {
+  justify-content: flex-start;
 }
 
 /* Asiento base */
 .seat {
-  @apply w-7 h-7 inline-flex items-center justify-center text-[10px] font-medium rounded-md border bg-white shadow-sm transition-transform transition-colors duration-150 ease-in-out select-none;
+  @apply w-6 h-6 inline-flex items-center justify-center text-[10px] font-medium rounded-md border bg-white shadow-sm transition-transform transition-colors duration-150 ease-in-out select-none;
 }
 
 /* Asiento disponible */
@@ -123,98 +179,91 @@ h3 {
 
 /* Grande en el centro, debajo del escenario */
 .zone-platea-baja {
-  top: 4rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 68%;
+  grid-area: platea-baja;
+  justify-self: center;
 }
 
 /* Justo debajo de Platea baja, un poco más ancho y "curvo" */
 .zone-platea-superior {
-  top: 12rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
+  grid-area: platea-superior;
+  justify-self: center;
 }
 
 /* En el borde inferior, largo de lado a lado */
 .zone-palco-superior-central {
-  bottom: 1.2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 82%;
+  grid-area: palco-superior-central;
+  justify-self: center;
 }
 
 /* Palcos inferiores izquierda / derecha, cerca de Platea baja */
 .zone-palcos-inf-left {
-  top: 5rem;
-  left: 6%;
-  transform: rotate(-10deg);
+  grid-area: palcos-inf-left;
+  justify-self: end;
+  max-width: 260px;
 }
 
 .zone-palcos-inf-right {
-  top: 5rem;
-  right: 6%;
-  transform: rotate(10deg);
+  grid-area: palcos-inf-right;
+  justify-self: start;
+  max-width: 260px;
 }
 
 /* Palcos VIP más abajo, inclinados */
 .zone-vip-left {
-  top: 16rem;
-  left: 10%;
-  transform: rotate(-14deg);
+  grid-area: vip-left;
+  justify-self: end;
+  max-width: 260px;
 }
 
 .zone-vip-right {
-  top: 16rem;
-  right: 10%;
-  transform: rotate(14deg);
+  grid-area: vip-right;
+  justify-self: start;
+  max-width: 260px;
 }
 
 /* Palcos superiores verticales a los lados, más altos */
 .zone-palcos-sup-left {
-  top: 1.5rem;
-  left: 1.2rem;
+  grid-area: palcos-sup-left;
+  justify-self: end;
+  max-width: 220px;
 }
 
 .zone-palcos-sup-right {
-  top: 1.5rem;
-  right: 1.2rem;
+  grid-area: palcos-sup-right;
+  justify-self: start;
+  max-width: 220px;
 }
 
 /* Un poquito de responsivo: en pantallas chicas, apilamos más compacto */
 @media (max-width: 768px) {
   .theatre-layout {
-    padding-inline: 0.75rem;
-    padding-top: 3.5rem;
-    min-height: 30rem;
+    padding: 3rem 1rem 3.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      "palcos-sup-left palcos-sup-right"
+      "platea-baja platea-baja"
+      "palcos-inf-left palcos-inf-right"
+      "platea-superior platea-superior"
+      "vip-left vip-right"
+      "palco-superior-central palco-superior-central";
+    gap: 1.5rem 1rem;
   }
 
-  .zone-platea-baja {
-    width: 90%;
+  .zone-block {
+    width: 100%;
   }
 
-  .zone-platea-superior {
-    width: 96%;
+  .zone-palcos-inf-left,
+  .zone-vip-left,
+  .zone-palcos-sup-left {
+    justify-self: center;
+    max-width: none;
   }
 
-  .zone-palco-superior-central {
-    width: 95%;
-  }
-
-  .zone-palcos-inf-left {
-    left: 3%;
-  }
-
-  .zone-palcos-inf-right {
-    right: 3%;
-  }
-
-  .zone-vip-left {
-    left: 4%;
-  }
-
-  .zone-vip-right {
-    right: 4%;
+  .zone-palcos-inf-right,
+  .zone-vip-right,
+  .zone-palcos-sup-right {
+    justify-self: center;
+    max-width: none;
   }
 }
