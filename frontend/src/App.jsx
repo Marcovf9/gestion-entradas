@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import SeatMap from "./components/SeatMap.jsx";
 import AdminPanel from "./components/AdminPanel.jsx";
-import { FaCog, FaWhatsapp } from "react-icons/fa";
+import { FaCog, FaWhatsapp, FaArrowLeft } from "react-icons/fa";
 
 const API_BASE = "http://localhost:4000/api";
 const WHATSAPP_PHONE = "5493515073081"; // <-- número de contacto
@@ -14,7 +14,38 @@ export default function App() {
   const [mode, setMode] = useState("publico"); // "publico" | "admin"
   const [adminLogged, setAdminLogged] = useState(false);
   const [adminPass, setAdminPass] = useState("");
+  const [errors, setErrors] = useState({});
 
+/** --- Funciones de Validación --- */
+  const validateField = (fieldName, value) => {
+    let error = "";
+    if (fieldName === "nombre" && !value.trim()) {
+      error = "El nombre es obligatorio.";
+    } else if (fieldName === "dni" && !value.trim()) {
+      error = "El DNI es obligatorio.";
+    } else if (fieldName === "email") {
+      if (!value.trim()) {
+        error = "El email es obligatorio.";
+      } else if (!/\S+@\S+\.\S+/.test(value)) {
+        error = "El formato del email no es válido.";
+      }
+    }
+    return error;
+  };
+
+  const validateForm = () => {
+    const newErrors = {
+      nombre: validateField("nombre", form.nombre),
+      dni: validateField("dni", form.dni),
+      email: validateField("email", form.email),
+    };
+    setErrors(newErrors);
+    // Retorna true si no hay errores
+    return Object.values(newErrors).every((err) => err === "");
+  };
+  
+  // Modificación de canSubmit para que *no* llame a validateForm
+  // Simplemente verifica que los campos tengan contenido
   const canSubmit =
     selection.seats.length > 0 &&
     form.nombre.trim() &&
@@ -22,12 +53,14 @@ export default function App() {
     form.email.trim() &&
     !submitting;
 
+
   const handleChange = (field) => (e) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
   /** --- Generar reserva y abrir WhatsApp --- */
   const handleReserve = async () => {
-    if (!canSubmit) return;
+    // ⚠️ Se llama a la validación aquí para que muestre errores antes de enviar
+    if (!validateForm() || !canSubmit) return; 
 
     try {
       setSubmitting(true);
@@ -47,7 +80,8 @@ export default function App() {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error al generar la reserva");
-
+      
+      // Construcción del mensaje de WhatsApp (modificado para ser más conciso)
       const lineas = [];
       lineas.push("Hola 👋, quiero pagar mi reserva para *Latidos de la Historia*.");
       lineas.push("");
@@ -67,8 +101,12 @@ export default function App() {
       const text = encodeURIComponent(lineas.join("\n"));
       window.open(`https://wa.me/${WHATSAPP_PHONE}?text=${text}`, "_blank");
 
+      // Limpieza y refresco
       setSelection({ seats: [], total: 0 });
+      setForm({ nombre: "", dni: "", email: "" });
+      setErrors({}); // Limpiar errores
       setReloadKey((k) => k + 1);
+
     } catch (err) {
       alert(err.message || "No se pudo generar la reserva.");
     } finally {
@@ -97,22 +135,32 @@ export default function App() {
   return (
     <div className="page">
       <header className="header">
-        <div>
-          <h1 className="text-3xl font-bold text-red-600 tracking-wide text-center">
+        <div className="flex items-center justify-center gap-4">
+          <img src=".\assets\logo-epifania.png" alt="Epifanía Dance Logo" className="logo-img" />
+          <h1 className="text-3xl font-bold tracking-wide text-center">
             Latidos de la Historia
           </h1>
         </div>
-
       </header>
       
         {/* Botón flotante administrador */}
       {mode === "publico" && (
         <button
-          className="fixed bottom-5 right-5 bg-purple-700 text-white rounded-full w-12 h-12 flex items-center justify-center opacity-70 hover:opacity-100 shadow-lg hover:scale-110 transition-all duration-200"
+          className="fixed bottom-5 right-5 bg-gray-700 text-white rounded-full w-12 h-12 flex items-center justify-center opacity-70 hover:opacity-100 shadow-lg hover:scale-110 transition-all duration-200"
           title="Modo administrador"
           onClick={() => setMode("admin")}
         >
           <FaCog className="text-xl" />
+          {/* Botón flotante para volver (solo visible en modo Admin) */}
+      {mode === "admin" && (
+        <button
+          className="fixed bottom-5 right-5 bg-gray-700 text-white rounded-full w-12 h-12 flex items-center justify-center opacity-70 hover:opacity-100 shadow-lg hover:scale-110 transition-all duration-200"
+          title="Volver al modo público"
+          onClick={() => setMode("publico")}
+        >
+          <FaArrowLeft className="text-xl" />
+        </button>
+      )}
         </button>
       )}
 
@@ -138,8 +186,9 @@ export default function App() {
                   type="text"
                   placeholder="Tu nombre completo"
                   value={form.nombre}
-                  onChange={handleChange("nombre")}
+                  onChange={handleChange("nombre")} onBlur={() => setErrors(prev => ({...prev, nombre: validateField('nombre', form.nombre)}))}
                 />
+                {errors.nombre && <p className="error-message">{errors.nombre}</p>}
               </label>
               <label>
                 DNI
@@ -147,8 +196,9 @@ export default function App() {
                   type="text"
                   placeholder="Tu DNI"
                   value={form.dni}
-                  onChange={handleChange("dni")}
+                  onChange={handleChange("dni")} onBlur={() => setErrors(prev => ({...prev, dni: validateField('dni', form.dni)}))}
                 />
+                {errors.dni && <p className="error-message">{errors.dni}</p>}
               </label>
               <label>
                 Email
@@ -156,8 +206,9 @@ export default function App() {
                   type="email"
                   placeholder="tucorreo@ejemplo.com"
                   value={form.email}
-                  onChange={handleChange("email")}
+                  onChange={handleChange("email")} onBlur={() => setErrors(prev => ({...prev, email: validateField('email', form.email)}))}
                 />
+                {errors.email && <p className="error-message">{errors.email}</p>}
               </label>
             </div>
 
@@ -166,6 +217,7 @@ export default function App() {
               disabled={!canSubmit}
               onClick={handleReserve}
             >
+              <FaWhatsapp className="text-xl" />
               {submitting ? "Generando reserva..." : "Reservar y pagar por WhatsApp"}
             </button>
             <p className="summary-note">
