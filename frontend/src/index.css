@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap');
 
 body {
   font-family: "Poppins", sans-serif;
@@ -34,24 +35,33 @@ body {
   padding: 2rem 1.5rem 3rem;
 }
 
+
 .header {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  background: white; /* Estilo de header para contener el logo */
+  /* ➡️ REVERTIMOS: Quitamos display: flex y volvemos a text-align: center; */
+  text-align: center; 
+  margin-bottom: 1rem;
+  background: white;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   padding: 1rem 2rem;
   border-bottom: 3px solid #c4b5fd;
+  /* ⚠️ Asegúrate de que no haya ninguna otra propiedad de Flexbox aquí */
 }
 
 .logo-img {
-  height: 40px; /* Tamaño del logo */
+  height: 50px; 
   object-fit: contain;
+  /* ➡️ ESTO ES INNECESARIO YA QUE EL PADRE ES FLEX. Puedes quitarlo. */
+  /* align-self: center; */ 
 }
 
 .header h1 {
-  font-size: 2.2rem;
+  font-size: 4rem; 
   margin: 0;
-  color: #dc2626; /* Título color rojo (Original: #4338ca) */
+  color: #dc2626;
+  font-family: 'Playfair Display', serif; 
+  font-weight: 700;
+  line-height: 1.2;
+  /* ➡️ NO debe tener display: inline-block; */
 }
 
 .header p {
@@ -178,7 +188,7 @@ body {
 /* ESCENARIO centrado arriba, independiente de la grilla */
 .stage {
   margin: 0 auto 1rem;
-  max-width: 520px;
+  max-width: 50%;
   padding: 0.75rem 1rem;
   background: #111827;
   color: white;
@@ -352,18 +362,13 @@ body {
 /* --- Leyenda --- */
 
 .legend-box {
-  margin-top: 1.5rem;
-  padding: 0.75rem 0.85rem;
-  border-radius: 0.9rem;
-  background: #e5e7eb;
-  display: inline-flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.legend-box h4 {
-  margin: 0;
-  font-size: 0.85rem;
+  /* ➡️ Mantenemos las dimensiones fijas. */
+  width: 18px; 
+  height: 18px; 
+  border-radius: 4px; /* Cuadrado redondeado */
+  border: 2px solid #9ca3af;
+  flex-shrink: 0;
+  /* ➡️ Eliminamos el vertical-align y display inline-block si usamos flex */
 }
 
 .legend-items {
@@ -375,8 +380,12 @@ body {
 
 .legend-item {
   display: flex;
-  align-items: center;
-  gap: 0.3rem;
+  align-items: center; /* ⬅️ ESTO ES LO CRÍTICO. Forzamos el centrado vertical. */
+  gap: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+  /* ➡️ Añadimos line-height normal para evitar desfases */
+  line-height: normal; 
 }
 
 .legend-dot {
@@ -407,13 +416,21 @@ body {
   color: #b91c1c;
   font-size: 0.9rem;
 }
+/* Mensaje de error para validación */
+.error-message {
+  color: #dc2626; /* Rojo */
+  font-size: 0.75rem;
+  margin-top: 0.2rem;
+  /* ➡️ AÑADE ESTAS LÍNEAS */
+  font-weight: bold; /* Negrita */
+}
 
 /* --- Ajustes finales visuales --- */
 
 /* Escenario centrado con más aire y estilo */
 .stage {
   margin: 1rem auto 2rem auto; /* 🔹 más espacio arriba y abajo */
-  max-width: 600px;            /* 🔹 un poco más ancho */
+  max-width: 50%;            /* 🔹 un poco más ancho */
   padding: 1rem 1.2rem;        /* 🔹 más altura */
   background: #111827;
   color: white;
@@ -429,26 +446,6 @@ body {
   background: #fff7ed;
 }
 
-/* leyenda extra */
-.legend-reserved {
-  background: #fed7aa;
-}
-
-.legend-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 2rem;
-  flex-wrap: wrap;
-  text-align: center;
-}
-
-.legend-box {
-  display: inline-block;
-  border-radius: 4px;
-  width: 20px;
-  height: 20px;
-}
 
 
 /* === MEJOR ESTÉTICA DE BUTACAS === */
@@ -540,6 +537,7 @@ body {
   align-items: center;
   gap: 2rem;
   flex-wrap: wrap;
+  text-align: center;
   margin-top: 2.5rem;
   padding: 0.8rem 1rem;
   background: #f3f4f6;
@@ -547,20 +545,27 @@ body {
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
+/* === Estilos para Leyenda (Asegurar alineación vertical) === */
 .legend-item {
   display: flex;
-  align-items: center;
+  align-items: center; /* ⬅️ ESTO ES LO CRÍTICO. Forzamos el centrado vertical. */
   gap: 0.5rem;
   font-weight: 500;
   color: #374151;
+  /* ➡️ Añadimos line-height normal para evitar desfases */
+  line-height: normal; 
 }
 
 .legend-box {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
+  /* ➡️ Mantenemos las dimensiones fijas. */
+  width: 18px; 
+  height: 18px; 
+  border-radius: 4px; /* Cuadrado redondeado */
   border: 2px solid #9ca3af;
+  flex-shrink: 0;
+  /* ➡️ Eliminamos el vertical-align y display inline-block si usamos flex */
 }
+
 .legend-available {
   background: #86efac;
   border-color: #16a34a;
@@ -598,10 +603,6 @@ h1, h2, h3 {
   .summary-card {
     width: 100%;
     max-width: 600px;
-  }
-
-  .header h1 {
-    font-size: 1.8rem;
   }
 }
 

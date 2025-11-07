@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import SeatMap from "./components/SeatMap.jsx";
 import AdminPanel from "./components/AdminPanel.jsx";
 import { FaCog, FaWhatsapp, FaArrowLeft } from "react-icons/fa";
+import EpifaniaLogo from "./assets/logo-epifania.png";
 
 const API_BASE = "http://localhost:4000/api";
 const WHATSAPP_PHONE = "5493515073081"; // <-- número de contacto
@@ -135,15 +136,17 @@ export default function App() {
   return (
     <div className="page">
       <header className="header">
+        {/* Usamos el logo importado */}
         <div className="flex items-center justify-center gap-4">
-          <img src=".\assets\logo-epifania.png" alt="Epifanía Dance Logo" className="logo-img" />
-          <h1 className="text-3xl font-bold tracking-wide text-center">
+          <img src={EpifaniaLogo} alt="Epifanía Dance Logo" className="logo-img" />
+          <h1 className="text-center">
             Latidos de la Historia
           </h1>
         </div>
       </header>
-      
-        {/* Botón flotante administrador */}
+
+      {/* ⚠️ CORRECCIÓN DE BOTONES FLOTANTES: Deben estar fuera del main/layout/card */}
+      {/* Botón flotante administrador (el COG) */}
       {mode === "publico" && (
         <button
           className="fixed bottom-5 right-5 bg-gray-700 text-white rounded-full w-12 h-12 flex items-center justify-center opacity-70 hover:opacity-100 shadow-lg hover:scale-110 transition-all duration-200"
@@ -151,7 +154,10 @@ export default function App() {
           onClick={() => setMode("admin")}
         >
           <FaCog className="text-xl" />
-          {/* Botón flotante para volver (solo visible en modo Admin) */}
+        </button>
+      )}
+      
+      {/* Botón flotante para volver (el ARROW) - solo visible en modo Admin */}
       {mode === "admin" && (
         <button
           className="fixed bottom-5 right-5 bg-gray-700 text-white rounded-full w-12 h-12 flex items-center justify-center opacity-70 hover:opacity-100 shadow-lg hover:scale-110 transition-all duration-200"
@@ -159,8 +165,6 @@ export default function App() {
           onClick={() => setMode("publico")}
         >
           <FaArrowLeft className="text-xl" />
-        </button>
-      )}
         </button>
       )}
 
