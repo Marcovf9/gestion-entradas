@@ -3,20 +3,25 @@ import React, { useEffect, useMemo, useState } from "react";
 const API_BASE = "http://localhost:4000/api";
 
 /** --- Componente de butaca individual --- */
-function Seat({ seat, onClick }) {
+function Seat({ seat, onClick, isSelected }) {
   const { estado } = seat;
 
   let className = "seat";
+
   if (estado === "DISPONIBLE") className += " seat--available";
-  if (estado === "RESERVADA") className += " seat--selected";
+  if (estado === "RESERVADA") className += " seat--reserved";
   if (estado === "VENDIDA") className += " seat--sold";
+
+  if (isSelected) className += " seat--selected";
+
+  const disabled = estado === "VENDIDA" || estado === "RESERVADA";
 
   return (
     <button
       type="button"
       className={className}
       onClick={onClick}
-      disabled={estado === "VENDIDA"}
+      disabled={disabled}
       title={`Fila ${seat.fila}, Asiento ${seat.columna}`}
     >
       {seat.columna}
@@ -63,7 +68,12 @@ function ZoneBlock({ label, price, seats, skew = 0 }) {
             </span>
             <div className="seat-row-seats flex gap-1">
               {row.seats.map((seat) => (
-                <Seat key={seat.id} seat={seat} onClick={seat.onClick} />
+                <Seat
+                  key={seat.id}
+                  seat={seat}
+                  onClick={seat.onClick}
+                  isSelected={seat.isSelected}
+                />
               ))}
             </div>
           </div>
@@ -74,11 +84,12 @@ function ZoneBlock({ label, price, seats, skew = 0 }) {
 }
 
 /** --- Mapa completo del teatro --- */
-export default function SeatMap() {
+export default function SeatMap({ onSelectionChange, reloadKey }) {
   const [zones, setZones] = useState([]);
   const [seats, setSeats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedSeatIds, setSelectedSeatIds] = useState([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -97,7 +108,9 @@ export default function SeatMap() {
 
         setZones(zonesJson);
         setSeats(seatsJson);
+        setSelectedSeatIds([]);
         setError("");
+        onSelectionChange?.({ seats: [], total: 0 });
       } catch (err) {
         console.error(err);
         setError(
@@ -109,9 +122,9 @@ export default function SeatMap() {
     }
 
     fetchData();
-  }, []);
+  }, [reloadKey, onSelectionChange]);
 
-  const zoneById = useMemo(() => {
+  const zonesById = useMemo(() => {
     const map = new Map();
     zones.forEach((z) => map.set(z.id, z));
     return map;
@@ -126,26 +139,43 @@ export default function SeatMap() {
     return map;
   }, [seats]);
 
+  const handleSeatClick = (seat) => {
+    if (seat.estado !== "DISPONIBLE") return;
+
+    setSelectedSeatIds((prev) => {
+      const exists = prev.includes(seat.id);
+      const next = exists
+        ? prev.filter((id) => id !== seat.id)
+        : [...prev, seat.id];
+
+      if (onSelectionChange) {
+        const selectedSeats = seats
+          .filter((s) => next.includes(s.id))
+          .map((s) => {
+            const zona = zonesById.get(s.zonaId);
+            return {
+              id: s.id,
+              fila: s.fila,
+              columna: s.columna,
+              zonaId: s.zonaId,
+              zonaNombre: zona?.nombre ?? "",
+              precio: zona?.precio ?? 0,
+            };
+          });
+
+        const total = selectedSeats.reduce((acc, s) => acc + s.precio, 0);
+        onSelectionChange({ seats: selectedSeats, total });
+      }
+
+      return next;
+    });
+  };
+
   const withClickHandler = (zoneSeats) =>
     zoneSeats.map((seat) => ({
       ...seat,
-      onClick: async () => {
-        try {
-          const res = await fetch(`${API_BASE}/seats/${seat.id}/toggle`, {
-            method: "POST",
-          });
-          if (!res.ok) throw new Error("Error al actualizar butaca");
-          const updated = await res.json();
-          setSeats((prev) =>
-            prev.map((s) =>
-              s.id === updated.id ? { ...s, estado: updated.estado } : s
-            )
-          );
-        } catch (err) {
-          console.error(err);
-          alert("No se pudo actualizar la butaca en el servidor.");
-        }
-      },
+      onClick: () => handleSeatClick(seat),
+      isSelected: selectedSeatIds.includes(seat.id),
     }));
 
   if (loading) return <p>Cargando mapa de butacas...</p>;
@@ -173,16 +203,16 @@ export default function SeatMap() {
 
   return (
     <div className="theatre-wrapper bg-slate-100 min-h-screen py-6">
-      
       <p className="text-center text-gray-600 mb-4">
         Seleccioná tus butacas para el show de fin de año.
       </p>
 
-      {/* 🔔 Aviso reserva */}
+
+      {/* Aviso */}
       <div className="bg-amber-100 border border-amber-300 text-amber-800 px-4 py-2 rounded-lg shadow-sm mb-6 text-center max-w-3xl mx-auto">
-        ⚠️ <strong>Proceso Manual:</strong> tus butacas se reservan
-        temporalmente por <strong>30 minutos</strong>. Completá el pago por
-        WhatsApp para confirmar la reserva.
+        ⚠️ <strong>Recordá:</strong> las butacas reservadas duran{" "}
+        <strong>30 minutos</strong>. Luego vuelven a estar disponibles si no se
+        registra el pago.
       </div>
 
       <div className="stage bg-slate-800 text-white text-center py-2 rounded-full font-semibold mb-6">
@@ -249,6 +279,22 @@ export default function SeatMap() {
           />
         </div>
       </div>
+      {/* Leyenda de estados */}
+<div className="legend-container">
+  <div className="legend-item">
+    <span className="legend-box legend-available"></span> Disponible
+  </div>
+  <div className="legend-item">
+    <span className="legend-box legend-selected"></span> Seleccionada
+  </div>
+  <div className="legend-item">
+    <span className="legend-box legend-reserved"></span> Reservada
+  </div>
+  <div className="legend-item">
+    <span className="legend-box legend-sold"></span> Vendida
+  </div>
+</div>
+
     </div>
   );
 }

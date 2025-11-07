@@ -1,3 +1,19 @@
+@import "tailwindcss";
+
+body {
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(180deg, #fff, #faf5ff 40%, #ede9fe);
+  color: #1f2937;
+}
+
+.header {
+  background: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  padding: 1rem 2rem;
+  border-bottom: 3px solid #c4b5fd;
+}
+
+
 *,
 *::before,
 *::after {
@@ -393,4 +409,201 @@ body {
   font-weight: 600;
   letter-spacing: 0.1em;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2); /* 🔹 sutil relieve */
+}
+
+.seat--reserved {
+  border-color: #fb923c;
+  background: #fff7ed;
+}
+
+/* leyenda extra */
+.legend-reserved {
+  background: #fed7aa;
+}
+
+.legend-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+.legend-box {
+  display: inline-block;
+  border-radius: 4px;
+  width: 20px;
+  height: 20px;
+}
+
+
+/* === MEJOR ESTÉTICA DE BUTACAS === */
+.seat {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 600;
+  border: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Disponible */
+.seat--available {
+  background: linear-gradient(145deg, #b9fbc0, #86efac);
+  border-color: #16a34a;
+}
+.seat--available:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.4);
+}
+
+/* Seleccionada */
+.seat--selected {
+  background: linear-gradient(145deg, #3b82f6, #1d4ed8);
+  color: white;
+  border-color: #1e40af;
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+  transform: scale(1.1);
+}
+
+/* Reservada */
+.seat--reserved {
+  background: linear-gradient(145deg, #facc15, #f59e0b);
+  border-color: #b45309;
+  color: #3f3f46;
+  box-shadow: 0 3px 6px rgba(251, 191, 36, 0.4);
+}
+
+/* Vendida */
+.seat--sold {
+  background: linear-gradient(145deg, #9ca3af, #6b7280);
+  border-color: #4b5563;
+  color: white;
+  opacity: 0.8;
+  cursor: not-allowed;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* Layout más proporcionado */
+.zone-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.seat-row {
+  display: flex;
+  justify-content: center;
+}
+
+/* Platea baja más alineada */
+.zone-block:nth-child(1) .seat-row-seats,
+.zone-block:nth-child(2) .seat-row-seats {
+  justify-content: center;
+}
+
+/* ESCENARIO con estilo teatral */
+.stage {
+  background: linear-gradient(180deg, #111827, #1f2937);
+  border-radius: 9999px;
+  padding: 12px;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Leyenda mejorada */
+.legend-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-top: 2.5rem;
+  padding: 0.8rem 1rem;
+  background: #f3f4f6;
+  border-radius: 12px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.legend-box {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #9ca3af;
+}
+.legend-available {
+  background: #86efac;
+  border-color: #16a34a;
+}
+.legend-selected {
+  background: #3b82f6;
+  border-color: #1e40af;
+}
+.legend-reserved {
+  background: #fbbf24;
+  border-color: #b45309;
+}
+.legend-sold {
+  background: #9ca3af;
+  border-color: #4b5563;
+}
+
+h1, h2, h3 {
+  font-weight: 700;
+  color: #6b21a8; /* violeta oscuro */
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #a78bfa, #7e22ce);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.25rem;
+  border-radius: 9999px;
+  transition: 0.3s;
+}
+.btn-primary:hover {
+  background: linear-gradient(90deg, #7e22ce, #5b21b6);
+  transform: scale(1.05);
+}
+
+@media (max-width: 1024px) {
+  .layout {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .theatre-card,
+  .summary-card {
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .header h1 {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .seat {
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+  }
 }

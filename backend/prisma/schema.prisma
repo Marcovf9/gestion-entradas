@@ -16,10 +16,15 @@ model Zona {
 }
 
 model Butaca {
-  id      Int     @id @default(autoincrement())
-  fila    Int
-  columna Int
-  zona    Zona    @relation(fields: [zonaId], references: [id])
-  zonaId  Int
-  estado  String  @default("DISPONIBLE")
+  id            Int      @id @default(autoincrement())
+  fila          Int
+  columna       Int
+  zona          Zona     @relation(fields: [zonaId], references: [id])
+  zonaId        Int
+  estado        String   @default("DISPONIBLE")
+
+  clienteNombre String?
+  clienteDni    String?
+  clienteEmail  String?
+  reservaHasta  DateTime?
 }
