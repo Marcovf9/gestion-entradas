@@ -6,8 +6,31 @@ const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(cors());
+import cors from "cors";
+
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173", // para desarrollo local
+      "https://gestion-entradas-1.onrender.com" // dominio público del frontend en Render
+    ],
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
 app.use(express.json());
+
+async function checkDBConnection() {
+  try {
+    await prisma.$connect();
+    console.log("✅ Conexión a la base de datos establecida correctamente");
+  } catch (error) {
+    console.error("❌ Error conectando a la base de datos:", error.message);
+  }
+}
+
+checkDBConnection();
+
 
 async function expirarReservasVencidas() {
   const ahora = new Date();
@@ -33,6 +56,9 @@ async function expirarReservasVencidas() {
   }
 }
 
+app.get("/", (req, res) => {
+  res.send("✅ API de Gestión de Entradas funcionando correctamente");
+});
 
 // Health check
 app.get("/api/health", (req, res) => {
