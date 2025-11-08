@@ -4,7 +4,7 @@ import AdminPanel from "./components/AdminPanel.jsx";
 import { FaCog, FaWhatsapp, FaArrowLeft } from "react-icons/fa";
 import EpifaniaLogo from "./assets/logo-epifania.png";
 
-const API_BASE = "http://localhost:4000/api";
+const API_BASE = "https://gestion-entradas.onrender.com/api";
 const WHATSAPP_PHONE = "5493515073081"; // <-- número de contacto
 
 export default function App() {
