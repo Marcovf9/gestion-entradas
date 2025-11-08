@@ -1,12 +1,13 @@
 import express from "express";
 import cors from "cors";
 import { PrismaClient } from "@prisma/client";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const prisma = new PrismaClient();
 const app = express();
 const PORT = process.env.PORT || 4000;
-
-import cors from "cors";
 
 app.use(
   cors({
