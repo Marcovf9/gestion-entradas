@@ -84,7 +84,7 @@ export default function App() {
       
       // Construcción del mensaje de WhatsApp (modificado para ser más conciso)
       const lineas = [];
-      lineas.push("Hola 👋, quiero pagar mi reserva para *Latidos de la Historia*.");
+      lineas.push("Hola, quiero pagar mi reserva para *Latidos de la Historia*.");
       lineas.push("");
       lineas.push(`Nombre: ${form.nombre}`);
       lineas.push(`DNI: ${form.dni}`);
@@ -97,10 +97,26 @@ export default function App() {
       lineas.push("");
       lineas.push(`*Total:* $${selection.total.toLocaleString("es-AR")}`);
       lineas.push("");
-      lineas.push("¿Podrías pasarme los datos para realizar el pago? 🙏");
+      lineas.push("¿Podrías pasarme los datos para realizar el pago?");
 
       const text = encodeURIComponent(lineas.join("\n"));
+      
+      /** Intento optimizado para iPhone + Android */
+      const whatsappUrl = `https://api.whatsapp.com/send?phone=${WHATSAPP_PHONE}&text=${text}`;
+
+      try {
+        // iPhone / Safari → redirección directa (funciona mejor)
+      window.location.href = whatsappUrl;
+
+      // Fallback si Safari bloquea la redirección:
+      setTimeout(() => {
+        window.open(`https://wa.me/${WHATSAPP_PHONE}?text=${text}`, "_blank");
+      }, 600);
+
+      } catch (e) {
+      // Último fallback universal
       window.open(`https://wa.me/${WHATSAPP_PHONE}?text=${text}`, "_blank");
+    }
 
       // Limpieza y refresco
       setSelection({ seats: [], total: 0 });
