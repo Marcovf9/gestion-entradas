@@ -84,6 +84,20 @@ class ReservaServiceIntegrationTest {
     }
 
     @Test
+    void listarActivasExpiraReservasVencidasSinFallar() {
+        var butaca = butacaRepository.findById(butacaDisponibleId).orElseThrow();
+        butaca.setEstado(EstadoButaca.RESERVADA);
+        butaca.setClienteNombre("Vencido");
+        butaca.setReservaHasta(java.time.LocalDateTime.now().minusMinutes(1));
+        butacaRepository.save(butaca);
+
+        var activas = reservaService.listarActivas();
+
+        assertTrue(activas.stream().noneMatch(r -> r.getId().equals(butacaDisponibleId)));
+        assertEquals(EstadoButaca.DISPONIBLE, butacaRepository.findById(butacaDisponibleId).orElseThrow().getEstado());
+    }
+
+    @Test
     void noPermiteReservarUnaButacaYaReservada() {
         reservaService.crearReserva(new ReservaRequestDTO(
                 List.of(butacaDisponibleId), "Primero", "1", "primero@example.com"));

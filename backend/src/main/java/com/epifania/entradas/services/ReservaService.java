@@ -12,6 +12,7 @@ import com.epifania.entradas.repositories.ButacaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -74,7 +75,14 @@ public class ReservaService {
                 .build();
     }
 
-    @Transactional(readOnly = true)
+    /**
+     * No es readOnly a propósito: expirarReservasVencidas() se llama como
+     * auto-invocación (this.expirarReservasVencidas()), que en Spring AOP
+     * no pasa por el proxy — así que su @Transactional(REQUIRES_NEW) no
+     * aplica acá, y el UPDATE necesita que ESTA transacción sea de
+     * escritura.
+     */
+    @Transactional
     public List<ReservaActivaDTO> listarActivas() {
         expirarReservasVencidas();
         return butacaRepository.findActivasConHold(EstadoButaca.RESERVADA, LocalDateTime.now()).stream()
@@ -105,7 +113,13 @@ public class ReservaService {
         butacaRepository.save(butaca);
     }
 
-    @Transactional
+    /**
+     * REQUIRES_NEW: esto se llama desde transacciones read-only (ej. al
+     * listar butacas), y Postgres rechaza un UPDATE dentro de una
+     * transacción read-only. Al abrir su propia transacción de escritura,
+     * funciona sin importar el modo de la transacción que la invoque.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void expirarReservasVencidas() {
         int liberadas = butacaRepository.expirarReservasVencidas(LocalDateTime.now());
         if (liberadas > 0) {
