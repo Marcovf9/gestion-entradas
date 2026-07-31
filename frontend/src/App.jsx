@@ -1,23 +1,32 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import SeatMap from "./components/SeatMap.jsx";
 import AdminPanel from "./components/AdminPanel.jsx";
 import { FaCog, FaWhatsapp, FaArrowLeft } from "react-icons/fa";
 import EpifaniaLogo from "./assets/logo-epifania.png";
+import api from "./services/api.js";
 
-const API_BASE = "https://gestion-entradas.onrender.com/api";
 const WHATSAPP_PHONE = "5493515073081"; // <-- número de contacto
 
 export default function App() {
+  const [evento, setEvento] = useState(null);
   const [selection, setSelection] = useState({ seats: [], total: 0 });
   const [form, setForm] = useState({ nombre: "", dni: "", email: "" });
   const [submitting, setSubmitting] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [mode, setMode] = useState("publico"); // "publico" | "admin"
-  const [adminLogged, setAdminLogged] = useState(false);
-  const [adminPass, setAdminPass] = useState("");
+  const [adminLogged, setAdminLogged] = useState(!!localStorage.getItem("token"));
+  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
+  const [loginError, setLoginError] = useState("");
   const [errors, setErrors] = useState({});
 
-/** --- Funciones de Validación --- */
+  useEffect(() => {
+    api
+      .get("/eventos")
+      .then((res) => setEvento(res.data[0] ?? null))
+      .catch((err) => console.error("No se pudo cargar el evento activo", err));
+  }, []);
+
+  /** --- Funciones de Validación --- */
   const validateField = (fieldName, value) => {
     let error = "";
     if (fieldName === "nombre" && !value.trim()) {
@@ -41,12 +50,9 @@ export default function App() {
       email: validateField("email", form.email),
     };
     setErrors(newErrors);
-    // Retorna true si no hay errores
     return Object.values(newErrors).every((err) => err === "");
   };
-  
-  // Modificación de canSubmit para que *no* llame a validateForm
-  // Simplemente verifica que los campos tengan contenido
+
   const canSubmit =
     selection.seats.length > 0 &&
     form.nombre.trim() &&
@@ -54,14 +60,12 @@ export default function App() {
     form.email.trim() &&
     !submitting;
 
-
   const handleChange = (field) => (e) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
   /** --- Generar reserva y abrir WhatsApp --- */
   const handleReserve = async () => {
-    // ⚠️ Se llama a la validación aquí para que muestre errores antes de enviar
-    if (!validateForm() || !canSubmit) return; 
+    if (!validateForm() || !canSubmit) return;
 
     try {
       setSubmitting(true);
@@ -73,16 +77,8 @@ export default function App() {
         email: form.email.trim(),
       };
 
-      const res = await fetch(`${API_BASE}/reservas`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      await api.post("/reservas", payload);
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error al generar la reserva");
-      
-      // Construcción del mensaje de WhatsApp (modificado para ser más conciso)
       const lineas = [];
       lineas.push("Hola, quiero pagar mi reserva para *Latidos de la Historia*.");
       lineas.push("");
@@ -100,51 +96,48 @@ export default function App() {
       lineas.push("¿Podrías pasarme los datos para realizar el pago?");
 
       const text = encodeURIComponent(lineas.join("\n"));
-      
+
       /** Intento optimizado para iPhone + Android */
-      const whatsappUrl = `https://api.whatsapp.com/send?phone=${WHATSAPP_PHONE}&text=${text}`;
+      window.location.href = `https://api.whatsapp.com/send?phone=${WHATSAPP_PHONE}&text=${text}`;
 
-      try {
-        // iPhone / Safari → redirección directa (funciona mejor)
-      window.location.href = whatsappUrl;
-
-      // Fallback si Safari bloquea la redirección:
+      // Fallback si Safari bloquea la redirección directa:
       setTimeout(() => {
         window.open(`https://wa.me/${WHATSAPP_PHONE}?text=${text}`, "_blank");
       }, 600);
 
-      } catch (e) {
-      // Último fallback universal
-      window.open(`https://wa.me/${WHATSAPP_PHONE}?text=${text}`, "_blank");
-    }
-
-      // Limpieza y refresco
       setSelection({ seats: [], total: 0 });
       setForm({ nombre: "", dni: "", email: "" });
-      setErrors({}); // Limpiar errores
+      setErrors({});
       setReloadKey((k) => k + 1);
-
     } catch (err) {
-      alert(err.message || "No se pudo generar la reserva.");
+      const data = err.response?.data;
+      if (err.response?.status === 409) {
+        alert(data?.error || "Alguna butaca ya no está disponible. El mapa se va a actualizar.");
+        setReloadKey((k) => k + 1);
+      } else {
+        alert(data?.error || "No se pudo generar la reserva.");
+      }
     } finally {
       setSubmitting(false);
     }
   };
 
-  /** --- Validar login de administrador --- */
-  const handleAdminLogin = (e) => {
+  /** --- Login real de administrador (JWT) --- */
+  const handleAdminLogin = async (e) => {
     e.preventDefault();
-    const CLAVE = "latidos3260"; 
-    if (adminPass === CLAVE) {
+    setLoginError("");
+    try {
+      const res = await api.post("/auth/login", loginForm);
+      localStorage.setItem("token", res.data.token);
       setAdminLogged(true);
-      setAdminPass("");
-    } else {
-      alert("Contraseña incorrecta");
+      setLoginForm({ email: "", password: "" });
+    } catch (err) {
+      setLoginError(err.response?.data?.error || "Email o contraseña incorrectos");
     }
   };
 
-  /** --- Cerrar sesión de administrador --- */
   const handleLogout = () => {
+    localStorage.removeItem("token");
     setAdminLogged(false);
     setMode("publico");
   };
@@ -152,17 +145,12 @@ export default function App() {
   return (
     <div className="page">
       <header className="header">
-        {/* Usamos el logo importado */}
         <div className="flex items-center justify-center gap-4">
           <img src={EpifaniaLogo} alt="Epifanía Dance Logo" className="logo-img" />
-          <h1 className="text-center">
-            Latidos de la Historia
-          </h1>
+          <h1 className="text-center">Latidos de la Historia</h1>
         </div>
       </header>
 
-      {/* ⚠️ CORRECCIÓN DE BOTONES FLOTANTES: Deben estar fuera del main/layout/card */}
-      {/* Botón flotante administrador (el COG) */}
       {mode === "publico" && (
         <button
           className="fixed bottom-5 right-5 bg-gray-700 text-white rounded-full w-12 h-12 flex items-center justify-center opacity-70 hover:opacity-100 shadow-lg hover:scale-110 transition-all duration-200"
@@ -172,8 +160,7 @@ export default function App() {
           <FaCog className="text-xl" />
         </button>
       )}
-      
-      {/* Botón flotante para volver (el ARROW) - solo visible en modo Admin */}
+
       {mode === "admin" && (
         <button
           className="fixed bottom-5 right-5 bg-gray-700 text-white rounded-full w-12 h-12 flex items-center justify-center opacity-70 hover:opacity-100 shadow-lg hover:scale-110 transition-all duration-200"
@@ -187,7 +174,7 @@ export default function App() {
       {mode === "publico" ? (
         <main className="layout">
           <section className="theatre-card">
-            <SeatMap onSelectionChange={setSelection} reloadKey={reloadKey} />
+            <SeatMap eventoId={evento?.id} onSelectionChange={setSelection} reloadKey={reloadKey} />
           </section>
 
           <aside className="summary-card">
@@ -206,7 +193,8 @@ export default function App() {
                   type="text"
                   placeholder="Tu nombre completo"
                   value={form.nombre}
-                  onChange={handleChange("nombre")} onBlur={() => setErrors(prev => ({...prev, nombre: validateField('nombre', form.nombre)}))}
+                  onChange={handleChange("nombre")}
+                  onBlur={() => setErrors((prev) => ({ ...prev, nombre: validateField("nombre", form.nombre) }))}
                 />
                 {errors.nombre && <p className="error-message">{errors.nombre}</p>}
               </label>
@@ -216,7 +204,8 @@ export default function App() {
                   type="text"
                   placeholder="Tu DNI"
                   value={form.dni}
-                  onChange={handleChange("dni")} onBlur={() => setErrors(prev => ({...prev, dni: validateField('dni', form.dni)}))}
+                  onChange={handleChange("dni")}
+                  onBlur={() => setErrors((prev) => ({ ...prev, dni: validateField("dni", form.dni) }))}
                 />
                 {errors.dni && <p className="error-message">{errors.dni}</p>}
               </label>
@@ -226,17 +215,14 @@ export default function App() {
                   type="email"
                   placeholder="tucorreo@ejemplo.com"
                   value={form.email}
-                  onChange={handleChange("email")} onBlur={() => setErrors(prev => ({...prev, email: validateField('email', form.email)}))}
+                  onChange={handleChange("email")}
+                  onBlur={() => setErrors((prev) => ({ ...prev, email: validateField("email", form.email) }))}
                 />
                 {errors.email && <p className="error-message">{errors.email}</p>}
               </label>
             </div>
 
-            <button
-              className="btn-primary"
-              disabled={!canSubmit}
-              onClick={handleReserve}
-            >
+            <button className="btn-primary" disabled={!canSubmit} onClick={handleReserve}>
               <FaWhatsapp className="text-xl" />
               {submitting ? "Generando reserva..." : "Reservar y pagar por WhatsApp"}
             </button>
@@ -254,40 +240,36 @@ export default function App() {
                 onSubmit={handleAdminLogin}
                 className="admin-login bg-white shadow-md rounded-xl p-6 max-w-sm mx-auto text-center"
               >
-                <h2 className="text-xl font-semibold mb-3 text-gray-700">
-                  Acceso Administrador
-                </h2>
-                <p className="text-sm text-gray-500 mb-4">
-                  Ingresá la contraseña para confirmar pagos.
-                </p>
+                <h2 className="text-xl font-semibold mb-3 text-gray-700">Acceso Administrador</h2>
+                <p className="text-sm text-gray-500 mb-4">Ingresá tus datos para confirmar pagos.</p>
+                <input
+                  type="email"
+                  value={loginForm.email}
+                  onChange={(e) => setLoginForm((prev) => ({ ...prev, email: e.target.value }))}
+                  placeholder="Email"
+                  className="w-full border rounded-lg px-3 py-2 mb-2 text-center"
+                />
                 <input
                   type="password"
-                  value={adminPass}
-                  onChange={(e) => setAdminPass(e.target.value)}
+                  value={loginForm.password}
+                  onChange={(e) => setLoginForm((prev) => ({ ...prev, password: e.target.value }))}
                   placeholder="Contraseña"
                   className="w-full border rounded-lg px-3 py-2 mb-4 text-center"
                 />
-                <button
-                  type="submit"
-                  className="btn-primary w-full py-2 font-semibold"
-                >
+                {loginError && <p className="error-message mb-2">{loginError}</p>}
+                <button type="submit" className="btn-primary w-full py-2 font-semibold">
                   Ingresar
                 </button>
               </form>
             ) : (
               <>
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-2xl font-bold text-gray-800">
-                    Panel de Administración
-                  </h2>
-                  <button
-                    onClick={handleLogout}
-                    className="text-sm text-red-600 underline"
-                  >
+                  <h2 className="text-2xl font-bold text-gray-800">Panel de Administración</h2>
+                  <button onClick={handleLogout} className="text-sm text-red-600 underline">
                     Cerrar sesión
                   </button>
                 </div>
-                <AdminPanel />
+                <AdminPanel eventoId={evento?.id} />
               </>
             )}
           </section>
