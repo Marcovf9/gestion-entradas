@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+import api from "../services/api.js";
 
 /** --- Componente de butaca individual --- */
 function Seat({ seat, onClick, isSelected }) {
@@ -83,8 +82,10 @@ function ZoneBlock({ label, price, seats, skew = 0 }) {
   );
 }
 
+const COLUMNAS = ["IZQUIERDA", "CENTRO", "DERECHA"];
+
 /** --- Mapa completo del teatro --- */
-export default function SeatMap({ onSelectionChange, reloadKey }) {
+export default function SeatMap({ eventoId, onSelectionChange, reloadKey }) {
   const [zones, setZones] = useState([]);
   const [seats, setSeats] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -92,29 +93,25 @@ export default function SeatMap({ onSelectionChange, reloadKey }) {
   const [selectedSeatIds, setSelectedSeatIds] = useState([]);
 
   useEffect(() => {
+    if (!eventoId) return;
+
     async function fetchData() {
       try {
         setLoading(true);
         const [zonesRes, seatsRes] = await Promise.all([
-          fetch(`${API_BASE}/zones`),
-          fetch(`${API_BASE}/seats`),
+          api.get(`/eventos/${eventoId}/zonas`),
+          api.get(`/eventos/${eventoId}/butacas`),
         ]);
 
-        if (!zonesRes.ok || !seatsRes.ok)
-          throw new Error("Error cargando datos del servidor");
-
-        const zonesJson = await zonesRes.json();
-        const seatsJson = await seatsRes.json();
-
-        setZones(zonesJson);
-        setSeats(seatsJson);
+        setZones(zonesRes.data);
+        setSeats(seatsRes.data);
         setSelectedSeatIds([]);
         setError("");
         onSelectionChange?.({ seats: [], total: 0 });
       } catch (err) {
         console.error(err);
         setError(
-          "No se pudieron cargar las butacas. ¿Está el backend corriendo en el puerto 4000?"
+          "No se pudieron cargar las butacas. ¿Está el backend corriendo?"
         );
       } finally {
         setLoading(false);
@@ -122,7 +119,7 @@ export default function SeatMap({ onSelectionChange, reloadKey }) {
     }
 
     fetchData();
-  }, [reloadKey, onSelectionChange]);
+  }, [eventoId, reloadKey, onSelectionChange]);
 
   const zonesById = useMemo(() => {
     const map = new Map();
@@ -171,35 +168,29 @@ export default function SeatMap({ onSelectionChange, reloadKey }) {
     });
   };
 
-  const withClickHandler = (zoneSeats) =>
-    zoneSeats.map((seat) => ({
-      ...seat,
-      onClick: () => handleSeatClick(seat),
-      isSelected: selectedSeatIds.includes(seat.id),
-    }));
+  const columnas = useMemo(() => {
+    const grouped = { IZQUIERDA: [], CENTRO: [], DERECHA: [] };
+    zones
+      .slice()
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+      .forEach((zona) => {
+        const baseSeats = seatsByZone.get(zona.id) || [];
+        const seatsConHandler = baseSeats.map((seat) => ({
+          ...seat,
+          onClick: () => handleSeatClick(seat),
+          isSelected: selectedSeatIds.includes(seat.id),
+        }));
+        if (grouped[zona.gridColumn]) {
+          grouped[zona.gridColumn].push({ zona, seats: seatsConHandler });
+        }
+      });
+    return grouped;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zones, seatsByZone, selectedSeatIds]);
 
+  if (!eventoId) return null;
   if (loading) return <p>Cargando mapa de butacas...</p>;
   if (error) return <p className="error-box text-red-600">{error}</p>;
-
-  const getZoneSeats = (name) => {
-    const zona = zones.find((z) => z.nombre === name);
-    if (!zona) return [];
-    const baseSeats = seatsByZone.get(zona.id) || [];
-    return withClickHandler(baseSeats);
-  };
-
-  const price = (name) => zones.find((z) => z.nombre === name)?.precio ?? null;
-
-  // Zonas
-  const plateaBaja = getZoneSeats("Platea baja");
-  const plateaSuperiorCentral = getZoneSeats("Platea superior central");
-  const palcosInfA = getZoneSeats("Palcos inferiores A");
-  const palcosInfB = getZoneSeats("Palcos inferiores B");
-  const palcosVipA = getZoneSeats("Palcos VIP A");
-  const palcosVipB = getZoneSeats("Palcos VIP B");
-  const palcosSupA = getZoneSeats("Palcos superiores A");
-  const palcosSupB = getZoneSeats("Palcos superiores B");
-  const palcoSupCentral = getZoneSeats("Palco superior central");
 
   return (
     <div className="theatre-wrapper bg-slate-100 min-h-screen py-6">
@@ -207,8 +198,6 @@ export default function SeatMap({ onSelectionChange, reloadKey }) {
         Seleccioná tus butacas para el show de fin de año.
       </p>
 
-
-      {/* Aviso */}
       <div className="bg-amber-100 border border-amber-300 text-amber-800 px-4 py-2 rounded-lg shadow-sm mb-6 text-center max-w-3xl mx-auto">
         ⚠️ <strong>Recordá:</strong> las butacas reservadas duran{" "}
         <strong>30 minutos</strong>. Luego vuelven a estar disponibles si no se
@@ -220,81 +209,35 @@ export default function SeatMap({ onSelectionChange, reloadKey }) {
       </div>
 
       <div className="theatre-layout grid grid-cols-3 gap-6 px-10 max-w-[1600px] mx-auto">
-        {/* Izquierda */}
-        <div className="flex flex-col gap-4">
-          <ZoneBlock
-            label="Palcos superiores"
-            price={price("Palcos superiores A")}
-            seats={palcosSupA}
-          />
-          <ZoneBlock
-            label="Palcos inferiores"
-            price={price("Palcos inferiores A")}
-            seats={palcosInfA}
-          />
-          <ZoneBlock
-            label="Palcos VIP"
-            price={price("Palcos VIP A")}
-            seats={palcosVipA}
-            skew={-6}
-          />
-        </div>
+        {COLUMNAS.map((columna) => (
+          <div key={columna} className="flex flex-col gap-4">
+            {columnas[columna].map(({ zona, seats: zoneSeats }) => (
+              <ZoneBlock
+                key={zona.id}
+                label={zona.nombre}
+                price={zona.precio}
+                seats={zoneSeats}
+                skew={zona.skewDeg}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
 
-        {/* Centro */}
-        <div className="flex flex-col gap-4">
-          <ZoneBlock
-            label="Platea baja"
-            price={price("Platea baja")}
-            seats={plateaBaja}
-          />
-          <ZoneBlock
-            label="Platea superior central"
-            price={price("Platea superior central")}
-            seats={plateaSuperiorCentral}
-          />
-          <ZoneBlock
-            label="Palco superior central"
-            price={price("Palco superior central")}
-            seats={palcoSupCentral}
-          />
+      <div className="legend-container">
+        <div className="legend-item">
+          <span className="legend-box legend-available"></span> Disponible
         </div>
-
-        {/* Derecha */}
-        <div className="flex flex-col gap-4">
-          <ZoneBlock
-            label="Palcos superiores"
-            price={price("Palcos superiores B")}
-            seats={palcosSupB}
-          />
-          <ZoneBlock
-            label="Palcos inferiores"
-            price={price("Palcos inferiores B")}
-            seats={palcosInfB}
-          />
-          <ZoneBlock
-            label="Palcos VIP"
-            price={price("Palcos VIP B")}
-            seats={palcosVipB}
-            skew={6}
-          />
+        <div className="legend-item">
+          <span className="legend-box legend-selected"></span> Seleccionada
+        </div>
+        <div className="legend-item">
+          <span className="legend-box legend-reserved"></span> Reservada
+        </div>
+        <div className="legend-item">
+          <span className="legend-box legend-sold"></span> Vendida
         </div>
       </div>
-      {/* Leyenda de estados */}
-<div className="legend-container">
-  <div className="legend-item">
-    <span className="legend-box legend-available"></span> Disponible
-  </div>
-  <div className="legend-item">
-    <span className="legend-box legend-selected"></span> Seleccionada
-  </div>
-  <div className="legend-item">
-    <span className="legend-box legend-reserved"></span> Reservada
-  </div>
-  <div className="legend-item">
-    <span className="legend-box legend-sold"></span> Vendida
-  </div>
-</div>
-
     </div>
   );
 }
