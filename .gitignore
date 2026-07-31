@@ -1,0 +1,29 @@
+# Dependencias
+node_modules/
+
+# Builds
+backend/build/
+frontend/dist/
+target/
+
+# Variables de entorno con secrets — NUNCA commitear
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+
+# Bases de datos locales
+*.db
+*.sqlite
+
+# Sistema
+.DS_Store
+
+# Editores
+.vscode/
+.idea/
+
+# Worktrees de Claude
+.claude/
+.claire/
