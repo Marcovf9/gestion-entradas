@@ -3,7 +3,7 @@
 - Backend: Java 21 + Spring Boot 3.5 + Spring Security (JWT) + Postgres + Flyway
 - Frontend: Vite + React
 - Zonas y precios según plano (Platea Baja $25k; Palcos Gold $25k; VIP/ Superiores $20k)
-- Deploy: backend en Render (Docker), frontend en Netlify
+- Deploy: todo en Render (Postgres + backend Docker + frontend estático), vía `render.yaml`
 
 ## Desarrollo local
 
@@ -30,6 +30,11 @@ Abrí `http://localhost:5173`. El mapa se dibuja con bloques, colores y ángulos
 
 ## Deploy
 
-Ver `render.yaml` (backend) y `netlify.toml` (frontend). La creación de los servicios y la
-carga de secrets en los dashboards de Render/Netlify se hace manualmente — ver el runbook
-en `SECURITY_ROTATION.md` para el caso puntual de la rotación de la contraseña de la DB.
+`render.yaml` es un [Blueprint de Render](https://render.com/docs/blueprint-spec) que
+define los tres recursos (Postgres, backend, frontend) en un solo archivo. En el dashboard
+de Render: **New > Blueprint**, conectar este repo, rama `develop` (o `main`). Render crea
+la base y ambos servicios, y cablea automáticamente host/usuario/contraseña de la base al
+backend — no hace falta pegar ningún connection string a mano. Quedan como secrets a cargar
+manualmente en el dashboard (marcados `sync: false`): `JWT_SECRET` (generar con
+`openssl rand -base64 64`), y opcionalmente `ADMIN_DEFAULT_EMAIL`/`ADMIN_DEFAULT_PASSWORD`
+(admin inicial) y `MAIL_USERNAME`/`MAIL_PASSWORD` (envío de emails de confirmación).
