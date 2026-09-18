@@ -1,23 +1,23 @@
-# Sistema de Venta de Entradas — Latidos de la Historia
+# Ticket Sales System — Latidos de la Historia
 
 - Backend: Java 21 + Spring Boot 3.5 + Spring Security (JWT) + Postgres + Flyway
 - Frontend: Vite + React
-- Zonas y precios según plano (Platea Baja $25k; Palcos Gold $25k; VIP/ Superiores $20k)
-- Deploy: backend en Render (Docker), frontend en Netlify
+- Zones and prices follow the venue plan (Lower Stalls $25k; Gold Boxes $25k; VIP / Upper $20k)
+- Deployment: backend on Render (Docker), frontend on Netlify
 
-## Desarrollo local
+## Local development
 
-1) Base de datos: levantá un Postgres local (por ejemplo `docker run --name entradas-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=entradas -p 5432:5432 -d postgres:16-alpine`), o apuntá `SPRING_DATASOURCE_URL` a uno remoto.
+1) Database: spin up a local Postgres instance (for example `docker run --name entradas-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=entradas -p 5432:5432 -d postgres:16-alpine`), or point `SPRING_DATASOURCE_URL` at a remote one.
 
 2) Backend
 ```bash
 cd backend
-cp .env.example .env   # completar DATABASE_URL / variables si hace falta
+cp .env.example .env   # fill in DATABASE_URL / other variables if needed
 ./mvnw spring-boot:run
 ```
-Las tablas y los datos del evento actual (9 zonas, ~500 butacas) se crean solos vía Flyway
-al arrancar. Para tener un admin, definí `ADMIN_DEFAULT_EMAIL`/`ADMIN_DEFAULT_PASSWORD` como
-variables de entorno antes del primer arranque (solo se usan si todavía no existe ningún admin).
+The tables and the current event's data (9 zones, ~500 seats) are created automatically by Flyway
+on startup. To get an admin account, set `ADMIN_DEFAULT_EMAIL` / `ADMIN_DEFAULT_PASSWORD` as
+environment variables before the first run (they are only used if no admin exists yet).
 
 3) Frontend
 ```bash
@@ -26,10 +26,10 @@ cp .env.example .env
 npm install
 npm run dev
 ```
-Abrí `http://localhost:5173`. El mapa se dibuja con bloques, colores y ángulos.
+Open `http://localhost:5173`. The seating map is rendered with blocks, colours and angles.
 
-## Deploy
+## Deployment
 
-Ver `render.yaml` (backend) y `netlify.toml` (frontend). La creación de los servicios y la
-carga de secrets en los dashboards de Render/Netlify se hace manualmente — ver el runbook
-en `SECURITY_ROTATION.md` para el caso puntual de la rotación de la contraseña de la DB.
+See `render.yaml` (backend) and `netlify.toml` (frontend). Creating the services and loading the
+secrets into the Render/Netlify dashboards is done manually — see the runbook in
+`SECURITY_ROTATION.md` for the specific case of rotating the database password.
