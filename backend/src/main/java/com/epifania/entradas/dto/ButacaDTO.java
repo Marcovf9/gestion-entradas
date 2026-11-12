@@ -13,5 +13,6 @@ public class ButacaDTO {
     private Long zonaId;
     private Integer fila;
     private Integer columna;
+    private Integer posX;
     private EstadoButaca estado;
 }

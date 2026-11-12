@@ -12,11 +12,15 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Si el backend rechaza el token (vencido o inválido responde 401/403), se
+// cierra la sesión del admin. Las rutas públicas nunca devuelven 401/403.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    if ((status === 401 || status === 403) && localStorage.getItem("token")) {
       localStorage.removeItem("token");
+      window.dispatchEvent(new Event("auth:logout"));
     }
     return Promise.reject(error);
   }

@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Getter
 @Setter
@@ -17,6 +18,10 @@ public class EventoRequestDTO {
 
     @NotNull(message = "La fecha es obligatoria")
     private LocalDate fecha;
+
+    private LocalTime hora;
+
+    private String lugar;
 
     private Boolean activo;
 }

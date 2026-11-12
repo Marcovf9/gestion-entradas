@@ -1,14 +1,17 @@
 package com.epifania.entradas.services;
 
 import com.epifania.entradas.dto.ButacaDTO;
+import com.epifania.entradas.dto.ElementoMapaDTO;
 import com.epifania.entradas.dto.EventoDTO;
 import com.epifania.entradas.dto.EventoRequestDTO;
 import com.epifania.entradas.dto.ZonaDTO;
 import com.epifania.entradas.exception.RecursoNoEncontradoException;
 import com.epifania.entradas.models.Butaca;
+import com.epifania.entradas.models.ElementoMapa;
 import com.epifania.entradas.models.Evento;
 import com.epifania.entradas.models.Zona;
 import com.epifania.entradas.repositories.ButacaRepository;
+import com.epifania.entradas.repositories.ElementoMapaRepository;
 import com.epifania.entradas.repositories.EventoRepository;
 import com.epifania.entradas.repositories.ZonaRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,7 @@ public class EventoService {
     private final EventoRepository eventoRepository;
     private final ZonaRepository zonaRepository;
     private final ButacaRepository butacaRepository;
+    private final ElementoMapaRepository elementoMapaRepository;
     private final ReservaService reservaService;
 
     @Transactional(readOnly = true)
@@ -51,11 +55,21 @@ public class EventoService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<ElementoMapaDTO> listarElementos(Long eventoId) {
+        obtenerEvento(eventoId);
+        return elementoMapaRepository.findByEventoIdOrderByFilaAscPosXAsc(eventoId).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public EventoDTO crear(EventoRequestDTO dto) {
         Evento evento = Evento.builder()
                 .nombre(dto.getNombre())
                 .fecha(dto.getFecha())
+                .hora(dto.getHora())
+                .lugar(dto.getLugar())
                 .activo(dto.getActivo() == null || dto.getActivo())
                 .build();
         return toDTO(eventoRepository.save(evento));
@@ -66,6 +80,8 @@ public class EventoService {
         Evento evento = obtenerEvento(id);
         evento.setNombre(dto.getNombre());
         evento.setFecha(dto.getFecha());
+        evento.setHora(dto.getHora());
+        evento.setLugar(dto.getLugar());
         if (dto.getActivo() != null) {
             evento.setActivo(dto.getActivo());
         }
@@ -82,6 +98,8 @@ public class EventoService {
                 .id(evento.getId())
                 .nombre(evento.getNombre())
                 .fecha(evento.getFecha())
+                .hora(evento.getHora())
+                .lugar(evento.getLugar())
                 .activo(evento.getActivo())
                 .build();
     }
@@ -94,8 +112,6 @@ public class EventoService {
                 .precio(zona.getPrecio())
                 .color(zona.getColor())
                 .displayOrder(zona.getDisplayOrder())
-                .gridColumn(zona.getGridColumn())
-                .skewDeg(zona.getSkewDeg())
                 .build();
     }
 
@@ -105,7 +121,18 @@ public class EventoService {
                 .zonaId(butaca.getZona().getId())
                 .fila(butaca.getFila())
                 .columna(butaca.getColumna())
+                .posX(butaca.getPosX())
                 .estado(butaca.getEstado())
+                .build();
+    }
+
+    private ElementoMapaDTO toDTO(ElementoMapa elemento) {
+        return ElementoMapaDTO.builder()
+                .id(elemento.getId())
+                .etiqueta(elemento.getEtiqueta())
+                .fila(elemento.getFila())
+                .posX(elemento.getPosX())
+                .ancho(elemento.getAncho())
                 .build();
     }
 }

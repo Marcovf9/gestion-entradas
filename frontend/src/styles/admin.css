@@ -1,0 +1,524 @@
+/* ==========================================================================
+   Panel de administración
+   ========================================================================== */
+
+.admin-login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background: linear-gradient(165deg, #121a33, var(--navy));
+}
+
+.admin-login__card {
+  width: 100%;
+  max-width: 400px;
+  display: grid;
+  gap: 16px;
+  padding: 32px 26px 24px;
+  background: var(--paper);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+}
+
+.admin-login__card h1 {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: var(--navy);
+  text-align: center;
+}
+
+.admin-login__card > p {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.93rem;
+}
+
+.admin-login__icon {
+  justify-self: center;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--gold-soft);
+  color: var(--gold);
+  font-size: 1.3rem;
+}
+
+.admin-login__back {
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+/* --- Estructura ------------------------------------------------------------- */
+
+.admin {
+  min-height: 100vh;
+  background: #f3efe6;
+}
+
+.admin__container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.admin__bar {
+  background: var(--navy);
+  color: #fff;
+}
+
+.admin__bar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.admin__eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #e6c985;
+}
+
+.admin__bar h1 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.admin__bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin__bar .btn--ghost {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.admin__bar .btn--ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: #fff;
+}
+
+.admin__user {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.75);
+  overflow-wrap: anywhere;
+}
+
+.admin__main {
+  padding-top: 24px;
+  padding-bottom: 56px;
+  display: grid;
+  gap: 18px;
+}
+
+.admin__card {
+  padding: 22px 20px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+/* --- Estadísticas ------------------------------------------------------------ */
+
+.stats {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 760px) {
+  .stats {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.stat {
+  display: grid;
+  gap: 2px;
+  padding: 14px 16px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+}
+
+.stat span {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.stat strong {
+  font-size: 1.4rem;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat--ok {
+  border-left-color: var(--ok);
+}
+
+.stat--warn {
+  border-left-color: #e0a526;
+}
+
+/* --- Pestañas ------------------------------------------------------------------ */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  border-bottom: 2px solid var(--line);
+}
+
+.tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border: none;
+  background: transparent;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+}
+
+.tab:hover {
+  color: var(--navy);
+}
+
+.tab--active {
+  color: var(--navy);
+  border-bottom-color: var(--red);
+}
+
+.tab__badge {
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--red);
+  color: #fff;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.tab__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--red);
+}
+
+/* --- Contenido común ---------------------------------------------------------------- */
+
+.admin-help {
+  margin-bottom: 16px;
+  font-size: 0.93rem;
+  color: var(--muted);
+}
+
+.admin-empty {
+  padding: 36px 12px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.admin-toolbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.admin-search {
+  flex: 1 1 240px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--paper);
+}
+
+.admin-total {
+  margin-top: 16px;
+  text-align: right;
+  color: var(--muted);
+}
+
+.admin-total strong {
+  color: var(--navy);
+  font-size: 1.15rem;
+}
+
+.admin-form {
+  display: grid;
+  gap: 16px;
+  max-width: 520px;
+}
+
+.form-row {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.confirm__body {
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+/* --- Reservas ------------------------------------------------------------------------- */
+
+.res-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.res-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-left: 4px solid #e0a526;
+  border-radius: var(--radius-sm);
+  background: #fffdf8;
+}
+
+.res-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.res-card__head h3 {
+  font-size: 1.05rem;
+  color: var(--navy);
+}
+
+.res-card__head p {
+  font-size: 0.88rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.res-card__timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--gold-soft);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.res-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.res-card__foot small {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.res-card__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eaf0fb;
+  color: var(--navy-2);
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chip small {
+  margin-left: 4px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* --- Tabla de ventas ---------------------------------------------------------------------- */
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 2px solid var(--line);
+}
+
+.table td {
+  padding: 12px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+}
+
+.table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .table thead {
+    display: none;
+  }
+
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table tr {
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 8px;
+    border: none;
+    text-align: right;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+  }
+
+  .table td:last-child::before {
+    content: none;
+  }
+
+  .table td:last-child {
+    justify-content: flex-end;
+    padding-top: 8px;
+  }
+
+  .table .chips {
+    justify-content: flex-end;
+  }
+}
+
+/* --- Precios ---------------------------------------------------------------------------------- */
+
+.zona-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.zona-row {
+  display: grid;
+  gap: 12px;
+  align-items: end;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  grid-template-columns: 1fr 1fr;
+}
+
+.zona-row__nombre {
+  grid-column: 1 / -1;
+}
+
+.zona-row__color input {
+  padding: 4px;
+  height: 46px;
+}
+
+.zona-row__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.zona-row__ok {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.zona-row__nota {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 760px) {
+  .zona-row {
+    grid-template-columns: 1fr 160px 90px auto;
+  }
+
+  .zona-row__nombre,
+  .zona-row__actions {
+    grid-column: auto;
+  }
+
+  .zona-row__nota {
+    grid-column: 1 / -1;
+  }
+}

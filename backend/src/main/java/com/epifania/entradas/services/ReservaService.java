@@ -1,12 +1,13 @@
 package com.epifania.entradas.services;
 
-import com.epifania.entradas.dto.ReservaActivaDTO;
+import com.epifania.entradas.dto.ReservaAdminDTO;
 import com.epifania.entradas.dto.ReservaRequestDTO;
 import com.epifania.entradas.dto.ReservaResponseDTO;
 import com.epifania.entradas.dto.ReservaSeatDTO;
 import com.epifania.entradas.exception.ConflictoReservaException;
 import com.epifania.entradas.exception.RecursoNoEncontradoException;
 import com.epifania.entradas.models.Butaca;
+import com.epifania.entradas.models.Evento;
 import com.epifania.entradas.models.enums.EstadoButaca;
 import com.epifania.entradas.repositories.ButacaRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,12 +35,11 @@ public class ReservaService {
     /**
      * Toma un lock pesimista sobre las butacas pedidas antes de chequear su
      * estado, así dos reservas concurrentes por la misma butaca no pueden
-     * pasar las dos la validación (a diferencia del "leer y después
-     * actualizar" del backend anterior en Node/Prisma).
+     * pasar las dos la validación.
      */
     @Transactional
     public ReservaResponseDTO crearReserva(ReservaRequestDTO request) {
-        List<Long> seatIds = request.getSeatIds();
+        List<Long> seatIds = request.getSeatIds().stream().distinct().collect(Collectors.toList());
 
         List<Butaca> butacas = butacaRepository.findAllByIdForUpdate(seatIds);
         if (butacas.size() != seatIds.size()) {
@@ -58,59 +60,86 @@ public class ReservaService {
         LocalDateTime vence = ahora.plusMinutes(MINUTOS_HOLD);
         for (Butaca butaca : butacas) {
             butaca.setEstado(EstadoButaca.RESERVADA);
-            butaca.setClienteNombre(request.getNombre());
-            butaca.setClienteDni(request.getDni());
-            butaca.setClienteEmail(request.getEmail());
+            butaca.setClienteNombre(request.getNombre().trim());
+            butaca.setClienteDni(request.getDni().trim());
+            butaca.setClienteEmail(request.getEmail().trim());
             butaca.setReservaHasta(vence);
         }
         butacaRepository.saveAll(butacas);
 
-        List<ReservaSeatDTO> seatDTOs = butacas.stream().map(this::toSeatDTO).collect(Collectors.toList());
+        List<ReservaSeatDTO> seatDTOs = butacas.stream()
+                .sorted(Comparator.comparing(Butaca::getFila).thenComparing(Butaca::getColumna))
+                .map(this::toSeatDTO)
+                .collect(Collectors.toList());
 
-        emailService.enviarConfirmacionReserva(request.getEmail(), request.getNombre(), seatDTOs, vence);
+        Evento evento = butacas.get(0).getZona().getEvento();
+        emailService.enviarConfirmacionReserva(request.getEmail().trim(), request.getNombre().trim(), seatDTOs, vence,
+                evento.getNombre(), evento.getFecha(), evento.getHora(), evento.getLugar());
 
         return ReservaResponseDTO.builder()
                 .seats(seatDTOs)
                 .expiresAt(vence)
+                .segundosRestantes(Duration.between(ahora, vence).getSeconds())
                 .build();
     }
 
     /**
      * No es readOnly a propósito: expirarReservasVencidas() se llama como
-     * auto-invocación (this.expirarReservasVencidas()), que en Spring AOP
-     * no pasa por el proxy — así que su @Transactional(REQUIRES_NEW) no
-     * aplica acá, y el UPDATE necesita que ESTA transacción sea de
-     * escritura.
+     * auto-invocación, que en Spring AOP no pasa por el proxy — así que su
+     * @Transactional(REQUIRES_NEW) no aplica acá, y el UPDATE necesita que
+     * ESTA transacción sea de escritura.
      */
     @Transactional
-    public List<ReservaActivaDTO> listarActivas() {
+    public List<ReservaAdminDTO> listarActivas(Long eventoId) {
         expirarReservasVencidas();
-        return butacaRepository.findActivasConHold(EstadoButaca.RESERVADA, LocalDateTime.now()).stream()
-                .map(b -> ReservaActivaDTO.builder()
-                        .id(b.getId())
-                        .zonaNombre(b.getZona().getNombre())
-                        .fila(b.getFila())
-                        .columna(b.getColumna())
-                        .clienteNombre(b.getClienteNombre())
-                        .clienteDni(b.getClienteDni())
-                        .clienteEmail(b.getClienteEmail())
-                        .reservaHasta(b.getReservaHasta())
-                        .build())
+        return butacaRepository.findActivasConHold(eventoId, EstadoButaca.RESERVADA, LocalDateTime.now()).stream()
+                .map(this::toAdminDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReservaAdminDTO> listarVendidas(Long eventoId) {
+        return butacaRepository.findByEstadoConZona(eventoId, EstadoButaca.VENDIDA).stream()
+                .map(this::toAdminDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional
     public void confirmarPago(Long seatId) {
-        Butaca butaca = butacaRepository.findById(seatId)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Butaca", seatId));
+        confirmarPagos(List.of(seatId));
+    }
 
-        if (butaca.getEstado() != EstadoButaca.RESERVADA) {
-            throw new IllegalArgumentException("La butaca no está en estado RESERVADA");
+    /** Pasa a VENDIDA un grupo de butacas reservadas (todas o ninguna). */
+    @Transactional
+    public void confirmarPagos(List<Long> seatIds) {
+        List<Butaca> butacas = obtenerBloqueadas(seatIds);
+        for (Butaca butaca : butacas) {
+            if (butaca.getEstado() != EstadoButaca.RESERVADA) {
+                throw new IllegalArgumentException("La butaca fila " + butaca.getFila()
+                        + ", número " + butaca.getColumna() + " no está en estado RESERVADA");
+            }
         }
+        for (Butaca butaca : butacas) {
+            butaca.setEstado(EstadoButaca.VENDIDA);
+            butaca.setReservaHasta(null);
+        }
+        butacaRepository.saveAll(butacas);
+    }
 
-        butaca.setEstado(EstadoButaca.VENDIDA);
-        butaca.setReservaHasta(null);
-        butacaRepository.save(butaca);
+    /** Libera butacas reservadas o vendidas (cancelar una reserva o anular una venta). */
+    @Transactional
+    public void liberar(List<Long> seatIds) {
+        List<Butaca> butacas = obtenerBloqueadas(seatIds);
+        for (Butaca butaca : butacas) {
+            if (butaca.getEstado() != EstadoButaca.RESERVADA && butaca.getEstado() != EstadoButaca.VENDIDA) {
+                throw new IllegalArgumentException("La butaca fila " + butaca.getFila()
+                        + ", número " + butaca.getColumna() + " no está reservada ni vendida");
+            }
+        }
+        for (Butaca butaca : butacas) {
+            limpiar(butaca);
+        }
+        butacaRepository.saveAll(butacas);
     }
 
     /**
@@ -125,6 +154,23 @@ public class ReservaService {
         if (liberadas > 0) {
             log.info("Se liberaron {} butacas con reserva vencida", liberadas);
         }
+    }
+
+    private List<Butaca> obtenerBloqueadas(List<Long> seatIds) {
+        List<Long> ids = seatIds.stream().distinct().collect(Collectors.toList());
+        List<Butaca> butacas = butacaRepository.findAllByIdForUpdate(ids);
+        if (butacas.size() != ids.size()) {
+            throw new RecursoNoEncontradoException("Alguna de las butacas no existe");
+        }
+        return butacas;
+    }
+
+    private void limpiar(Butaca butaca) {
+        butaca.setEstado(EstadoButaca.DISPONIBLE);
+        butaca.setClienteNombre(null);
+        butaca.setClienteDni(null);
+        butaca.setClienteEmail(null);
+        butaca.setReservaHasta(null);
     }
 
     private boolean esDisponibleAhora(Butaca butaca, LocalDateTime ahora) {
@@ -144,6 +190,24 @@ public class ReservaService {
                 .zonaNombre(butaca.getZona().getNombre())
                 .precio(butaca.getZona().getPrecio())
                 .estado(butaca.getEstado())
+                .build();
+    }
+
+    private ReservaAdminDTO toAdminDTO(Butaca b) {
+        return ReservaAdminDTO.builder()
+                .id(b.getId())
+                .zonaNombre(b.getZona().getNombre())
+                .fila(b.getFila())
+                .columna(b.getColumna())
+                .precio(b.getZona().getPrecio())
+                .estado(b.getEstado())
+                .clienteNombre(b.getClienteNombre())
+                .clienteDni(b.getClienteDni())
+                .clienteEmail(b.getClienteEmail())
+                .reservaHasta(b.getReservaHasta())
+                .segundosRestantes(b.getEstado() == EstadoButaca.RESERVADA && b.getReservaHasta() != null
+                        ? Math.max(0, Duration.between(LocalDateTime.now(), b.getReservaHasta()).getSeconds())
+                        : null)
                 .build();
     }
 }

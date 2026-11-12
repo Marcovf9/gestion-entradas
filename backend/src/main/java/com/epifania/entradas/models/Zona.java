@@ -1,9 +1,9 @@
 package com.epifania.entradas.models;
 
-import com.epifania.entradas.models.enums.GridColumn;
 import jakarta.persistence.*;
 import lombok.*;
 
+/** Categoría de precio de un evento (ej. "Platea preferencial"). */
 @Entity
 @Table(name = "zonas")
 @Getter
@@ -32,12 +32,4 @@ public class Zona {
 
     @Column(name = "display_order", nullable = false)
     private Integer displayOrder;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "grid_column", nullable = false, length = 20)
-    private GridColumn gridColumn;
-
-    @Builder.Default
-    @Column(name = "skew_deg", nullable = false)
-    private Integer skewDeg = 0;
 }

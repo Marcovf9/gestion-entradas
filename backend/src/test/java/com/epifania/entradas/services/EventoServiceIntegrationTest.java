@@ -5,7 +5,6 @@ import com.epifania.entradas.models.Butaca;
 import com.epifania.entradas.models.Evento;
 import com.epifania.entradas.models.Zona;
 import com.epifania.entradas.models.enums.EstadoButaca;
-import com.epifania.entradas.models.enums.GridColumn;
 import com.epifania.entradas.repositories.ButacaRepository;
 import com.epifania.entradas.repositories.EventoRepository;
 import com.epifania.entradas.repositories.ZonaRepository;
@@ -55,8 +54,6 @@ class EventoServiceIntegrationTest {
                 .precio(25000)
                 .color("#f5d742")
                 .displayOrder(1)
-                .gridColumn(GridColumn.CENTRO)
-                .skewDeg(0)
                 .build());
 
         Butaca butaca = butacaRepository.save(Butaca.builder()
