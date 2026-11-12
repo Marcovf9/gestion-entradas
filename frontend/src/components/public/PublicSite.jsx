@@ -10,6 +10,7 @@ import Legend from "./Legend.jsx";
 import BookingSummary from "./BookingSummary.jsx";
 import BookingModal from "./BookingModal.jsx";
 import ReservationSuccess from "./ReservationSuccess.jsx";
+import InstagramSection from "./InstagramSection.jsx";
 import Footer from "./Footer.jsx";
 
 const CLAVE_RESERVA = "reserva-en-curso";
@@ -127,7 +128,7 @@ export default function PublicSite() {
 
   return (
     <div className="site">
-      <Navbar />
+      <Navbar evento={evento} />
 
       {reserva ? (
         <main>
@@ -175,7 +176,6 @@ export default function PublicSite() {
                       selectedIds={selectedIds}
                       onToggle={alternarButaca}
                     />
-                    <Legend zonas={zonas} butacas={butacas} />
                   </div>
                   <div className="booking__side">
                     <BookingSummary
@@ -186,12 +186,17 @@ export default function PublicSite() {
                       onContinue={() => setMostrarForm(true)}
                     />
                   </div>
+                  <div className="booking__legend">
+                    <Legend zonas={zonas} butacas={butacas} />
+                  </div>
                 </div>
               )}
             </div>
           </section>
         </main>
       )}
+
+      <InstagramSection />
 
       <Footer evento={evento} />
 
