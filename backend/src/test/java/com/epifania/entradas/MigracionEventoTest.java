@@ -93,9 +93,18 @@ class MigracionEventoTest {
     @Test
     void preciosPorFila() {
         butacas.stream().filter(b -> b.getFila() <= 5)
+                .forEach(b -> assertEquals(28000, zonas.get(b.getZonaId()).getPrecio(), "fila " + b.getFila()));
+        butacas.stream().filter(b -> b.getFila() >= 6 && b.getFila() <= 9)
                 .forEach(b -> assertEquals(25000, zonas.get(b.getZonaId()).getPrecio(), "fila " + b.getFila()));
-        butacas.stream().filter(b -> b.getFila() >= 6 && b.getFila() <= 15)
+        butacas.stream().filter(b -> b.getFila() >= 10 && b.getFila() <= 15)
                 .forEach(b -> assertEquals(20000, zonas.get(b.getZonaId()).getPrecio(), "fila " + b.getFila()));
+    }
+
+    @Test
+    void haySoloTresCategoriasEnVentaMasLaDeLasNoDisponibles() {
+        long enVenta = zonas.values().stream().filter(z -> z.getPrecio() > 0).count();
+        assertEquals(3, enVenta);
+        assertEquals(4, zonas.size());
     }
 
     @Test

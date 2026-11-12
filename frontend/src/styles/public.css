@@ -1361,15 +1361,18 @@
 
   .hero__tiers {
     margin-top: 14px;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 
   .tier {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-    padding: 12px 14px;
+    gap: 14px;
+    padding: 10px 14px;
+  }
+
+  .tier strong {
+    min-width: 92px;
+    font-size: 1.4rem;
   }
 
   .hero__cta {
