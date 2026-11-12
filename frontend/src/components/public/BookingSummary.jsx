@@ -8,7 +8,7 @@ export default function BookingSummary({ seats, total, onRemove, onClear, onCont
   const vacio = seats.length === 0;
 
   return (
-    <aside className="summary" aria-live="polite">
+    <aside className={`summary ${vacio ? "summary--vacio" : ""}`} aria-live="polite">
       <h3 className="summary__title">
         <FaTicketAlt aria-hidden="true" /> Tu selección
       </h3>

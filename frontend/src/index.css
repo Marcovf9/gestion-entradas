@@ -78,6 +78,12 @@ textarea {
 
 button {
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  -webkit-tap-highlight-color: transparent;
 }
 
 :focus-visible {
@@ -171,6 +177,16 @@ button {
   background: rgba(255, 255, 255, 0.22);
 }
 
+.btn--insta {
+  background: linear-gradient(45deg, #f9a03f, #e1306c 55%, #833ab4);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(225, 48, 108, 0.35);
+}
+
+.btn--insta:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
 .btn--danger {
   background: transparent;
   color: var(--danger);
@@ -191,16 +207,17 @@ button {
 }
 
 .btn--sm {
-  padding: 8px 14px;
-  font-size: 0.86rem;
+  min-height: 40px;
+  padding: 8px 16px;
+  font-size: 0.88rem;
 }
 
 .icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: 1px solid var(--line-strong);
   background: var(--paper);
