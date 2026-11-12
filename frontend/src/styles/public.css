@@ -1402,3 +1402,24 @@
     width: 100%;
   }
 }
+
+/* Header en celular: el botón no se parte en dos líneas */
+.navbar__cta {
+  white-space: nowrap;
+}
+
+@media (max-width: 479px) {
+  .navbar__inner {
+    gap: 12px;
+    min-height: 64px;
+  }
+
+  .navbar__brand img {
+    height: 40px;
+  }
+
+  .navbar__cta {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
