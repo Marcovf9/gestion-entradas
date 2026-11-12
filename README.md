@@ -24,8 +24,9 @@ asiento), fila 16 con 5 + cabina + 5 y fila 17 con 6 a la derecha.
 
 | Butacas | Precio |
 | --- | --- |
-| Filas 1 a 5 (platea preferencial) | $25.000 |
-| Filas 6 a 15 (platea general) | $20.000 |
+| Filas 1 a 5 (platea preferencial) | $28.000 |
+| Filas 6 a 9 (platea intermedia) | $25.000 |
+| Filas 10 a 15 (platea general) | $20.000 |
 | Filas 16 y 17 (las beige junto a la cabina) | no se venden |
 
 Los precios, la fecha, la hora y el lugar se editan desde el panel admin (pestañas *Precios* y
