@@ -6,3 +6,7 @@ export const MAX_SEATS = 10;
 
 // Minutos que se sostienen las butacas reservadas hasta que se registre el pago.
 export const HOLD_MINUTES = 30;
+
+// Instagram de Epifanía Dance (usuario sin @). Se puede cambiar con VITE_INSTAGRAM_USER.
+export const INSTAGRAM_USER = import.meta.env.VITE_INSTAGRAM_USER || "epifaniadance";
+export const INSTAGRAM_URL = `https://www.instagram.com/${INSTAGRAM_USER}/`;

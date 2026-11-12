@@ -1,11 +1,12 @@
-import React, { memo, useEffect, useMemo, useRef, useState } from "react";
-import { FaMinus, FaPlus } from "react-icons/fa";
+import React, { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { FaMinus, FaPlus, FaExpand } from "react-icons/fa";
 import { formatPrice } from "../../utils/format.js";
 
-const MIN_H = 6; // alto mínimo de media columna, en px
+const MIN_H = 4; // alto mínimo de media columna (px): plano completo en pantallas muy angostas
 const MAX_H = 30;
 const MAX_H_AJUSTADO = 18; // en pantallas grandes no hace falta que las butacas crezcan más
-const H_OBJETIVO = 13; // en celulares, tamaño cómodo para tocar (se desliza el plano)
+const H_CLARO = 12; // desde acá las butacas se pueden tocar con comodidad
+const H_OBJETIVO = 15; // tamaño al acercar en celulares
 const ZOOM_STEP = 1.25;
 
 const ETIQUETA_ESTADO = {
@@ -41,8 +42,11 @@ const Seat = memo(function Seat({ seat, zona, selected, onToggle }) {
     <button
       type="button"
       className={`seat ${clase}`}
+      data-seat={seat.id}
       style={{ gridColumn: `${seat.posX + 1} / span 2`, "--zc": zona?.color ?? "#4f6fa8" }}
-      disabled={!libre && !selected}
+      // No se usa `disabled`: en la vista completa de un celular, tocar cualquier butaca
+      // (incluso una vendida) acerca el plano (ver alTocarButaca).
+      aria-disabled={!libre && !selected ? true : undefined}
       aria-pressed={libre || selected ? selected : undefined}
       aria-label={descripcion}
       title={descripcion}
@@ -55,8 +59,9 @@ const Seat = memo(function Seat({ seat, zona, selected, onToggle }) {
 
 export default function SeatMap({ butacas, zonas, elementos, selectedIds, onToggle }) {
   const wrapRef = useRef(null);
+  const centrarEn = useRef(null);
   const [ancho, setAncho] = useState(960);
-  const [zoom, setZoom] = useState(1); // factor sobre el tamaño automático
+  const [zoom, setZoom] = useState(1); // 1 = plano completo ajustado al ancho
 
   useEffect(() => {
     const el = wrapRef.current;
@@ -98,40 +103,70 @@ export default function SeatMap({ butacas, zonas, elementos, selectedIds, onTogg
     };
   }, [butacas, elementos]);
 
-  const anchoEtiqueta = ancho < 640 ? 52 : 74;
-  const hQueEntra = (ancho - anchoEtiqueta - 6) / Math.max(columnas, 1);
-  // Si el plano entero entra en pantalla con butacas cómodas, se ajusta al ancho.
-  // Si no (celulares), se usa un tamaño cómodo para tocar y el plano se desliza.
-  const hAuto = hQueEntra >= H_OBJETIVO ? Math.min(hQueEntra, MAX_H_AJUSTADO) : H_OBJETIVO;
-  const h = clamp(hAuto * zoom, MIN_H, MAX_H);
-  const puedeAchicar = h > MIN_H + 0.01;
+  const anchoEtiqueta = ancho < 640 ? 30 : 74;
+  // Tamaño con el que el plano entero entra en el ancho disponible.
+  const hCompleto = clamp((ancho - anchoEtiqueta - 6) / Math.max(columnas, 1), MIN_H, MAX_H_AJUSTADO);
+  const h = clamp(hCompleto * zoom, MIN_H, MAX_H);
+  const claro = h >= H_CLARO; // ¿las butacas son lo bastante grandes para tocarlas?
+  const compacto = h < 9; // números ilegibles: se ocultan
+  const puedeAchicar = zoom > 1.001;
   const puedeAgrandar = h < MAX_H - 0.01;
   const hayScroll = anchoEtiqueta + columnas * h + 6 > ancho + 1;
+  const hAcercado = Math.max(H_OBJETIVO, hCompleto);
 
-  const cambiarZoom = (factor) => setZoom((z) => clamp(z * factor, 0.2, 6));
+  // Tras acercar con un toque, deja la butaca tocada en el centro de la pantalla.
+  useLayoutEffect(() => {
+    const id = centrarEn.current;
+    if (!id) return;
+    centrarEn.current = null;
+    const cont = wrapRef.current;
+    const el = cont?.querySelector(`[data-seat="${id}"]`);
+    if (!cont || !el) return;
+    const r = el.getBoundingClientRect();
+    const c = cont.getBoundingClientRect();
+    cont.scrollLeft += r.left - c.left - cont.clientWidth / 2 + r.width / 2;
+    el.scrollIntoView({ block: "center", inline: "nearest" });
+  }, [h]);
+
+  const acercar = () => {
+    // Desde la vista completa, salta directo a un tamaño cómodo para tocar.
+    setZoom((z) => (hCompleto * z < hAcercado - 0.01 ? hAcercado / hCompleto : z * ZOOM_STEP));
+  };
+  const alejar = () => setZoom((z) => Math.max(1, z / ZOOM_STEP));
+
+  const alTocarButaca = (seat) => {
+    if (claro) {
+      if (seat.estado === "DISPONIBLE" || seleccion.has(seat.id)) onToggle(seat);
+    } else {
+      centrarEn.current = seat.id;
+      setZoom(hAcercado / hCompleto);
+    }
+  };
 
   return (
     <div className="seatmap">
       <div className="seatmap__toolbar">
-        <p className="seatmap__hint">Tocá las butacas libres para seleccionarlas.</p>
+        <p className="seatmap__hint">
+          {claro ? "Tocá las butacas libres para seleccionarlas." : "Tocá una zona del plano para acercarla."}
+        </p>
         <div className="seatmap__zoom" role="group" aria-label="Zoom del plano">
-          <button type="button" className="icon-btn" onClick={() => cambiarZoom(1 / ZOOM_STEP)} disabled={!puedeAchicar} aria-label="Alejar">
-            <FaMinus aria-hidden="true" />
-          </button>
-          <button type="button" className="icon-btn" onClick={() => cambiarZoom(ZOOM_STEP)} disabled={!puedeAgrandar} aria-label="Acercar">
-            <FaPlus aria-hidden="true" />
-          </button>
-          {zoom !== 1 && (
-            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setZoom(1)}>
-              Ajustar
+          {puedeAchicar && (
+            <button type="button" className="btn btn--ghost btn--sm seatmap__todo" onClick={() => setZoom(1)}>
+              <FaExpand aria-hidden="true" /> Plano completo
             </button>
           )}
+          <button type="button" className="icon-btn" onClick={alejar} disabled={!puedeAchicar} aria-label="Alejar">
+            <FaMinus aria-hidden="true" />
+          </button>
+          <button type="button" className="icon-btn" onClick={acercar} disabled={!puedeAgrandar} aria-label="Acercar">
+            <FaPlus aria-hidden="true" />
+          </button>
         </div>
       </div>
 
       <div className="seatmap__scroll" ref={wrapRef}>
         <div
-          className="seatmap__content"
+          className={`seatmap__content ${compacto ? "seatmap__content--compacto" : ""} ${claro ? "" : "seatmap__content--resumen"}`}
           style={{
             "--h": `${h}px`,
             "--label-w": `${anchoEtiqueta}px`,
@@ -145,7 +180,10 @@ export default function SeatMap({ butacas, zonas, elementos, selectedIds, onTogg
 
           {filas.map(({ fila, butacas: butacasFila, elementos: elementosFila }) => (
             <div className="seatmap__row" key={fila}>
-              <div className="seatmap__label">FILA {pad(fila)}</div>
+              <div className="seatmap__label">
+                <span className="seatmap__fila-txt">FILA </span>
+                {pad(fila)}
+              </div>
               <div className="seatmap__grid" style={{ gridTemplateColumns: `repeat(${columnas}, var(--h))` }}>
                 {butacasFila.map((b) => (
                   <Seat
@@ -153,7 +191,7 @@ export default function SeatMap({ butacas, zonas, elementos, selectedIds, onTogg
                     seat={b}
                     zona={zonasPorId.get(b.zonaId)}
                     selected={seleccion.has(b.id)}
-                    onToggle={onToggle}
+                    onToggle={alTocarButaca}
                   />
                 ))}
                 {elementosFila.map((e) => (
@@ -162,7 +200,7 @@ export default function SeatMap({ butacas, zonas, elementos, selectedIds, onTogg
                     className="seatmap__element"
                     style={{ gridColumn: `${e.posX + 1} / span ${e.ancho}` }}
                   >
-                    {e.etiqueta}
+                    {compacto ? "" : e.etiqueta}
                   </div>
                 ))}
               </div>
@@ -171,7 +209,7 @@ export default function SeatMap({ butacas, zonas, elementos, selectedIds, onTogg
         </div>
       </div>
 
-      {hayScroll && <p className="seatmap__swipe">Deslizá el plano para ver todas las butacas.</p>}
+      {hayScroll && claro && <p className="seatmap__swipe">Deslizá el plano para ver todas las butacas.</p>}
     </div>
   );
 }

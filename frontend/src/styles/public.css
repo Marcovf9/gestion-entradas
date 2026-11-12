@@ -3,7 +3,35 @@
    pantalla de reserva exitosa y footer.
    ========================================================================== */
 
-/* --- Navbar --------------------------------------------------------------- */
+/* --- Barra superior + navegación ---------------------------------------- */
+
+.topbar {
+  background: #0d0828;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.82rem;
+}
+
+.topbar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 28px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.topbar svg {
+  margin-right: 6px;
+  vertical-align: -1px;
+  color: #e6c36b;
+}
+
+@media (max-width: 640px) {
+  .topbar__lugar {
+    display: none;
+  }
+}
 
 .navbar {
   position: sticky;
@@ -11,111 +39,249 @@
   z-index: 50;
   background: #fff;
   border-bottom: 1px solid var(--line);
+  transition: box-shadow 0.2s;
+}
+
+.navbar--sombra {
+  box-shadow: 0 6px 24px rgba(20, 11, 58, 0.12);
 }
 
 .navbar__inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 66px;
+  gap: 24px;
+  min-height: 70px;
 }
 
 .navbar__brand img {
-  height: 44px;
+  height: 46px;
   width: auto;
 }
 
-/* --- Hero ----------------------------------------------------------------- */
+.navbar__links {
+  display: none;
+  align-items: center;
+  gap: 34px;
+  margin-left: auto;
+}
+
+.navbar__links a {
+  position: relative;
+  padding: 6px 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--navy);
+  text-decoration: none;
+}
+
+.navbar__links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--red);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s;
+}
+
+.navbar__links a:hover::after {
+  transform: scaleX(1);
+}
+
+@media (min-width: 860px) {
+  .navbar__links {
+    display: flex;
+  }
+}
+
+/* --- Portada ---------------------------------------------------------------- */
 
 .hero {
   position: relative;
   overflow: hidden;
   color: #fff;
-  background: linear-gradient(165deg, #121a33 0%, var(--navy) 55%, var(--navy-2) 100%);
+  background: linear-gradient(170deg, #0d0828 0%, #1a0f4d 52%, #2b1769 100%);
 }
 
-.hero__glow {
+/* Cielo del afiche: resplandor dorado, violeta y un campo de estrellas */
+.hero__bg {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(55% 75% at 50% -10%, rgba(184, 137, 43, 0.42), transparent 70%),
-    radial-gradient(35% 50% at 88% 25%, rgba(200, 39, 45, 0.28), transparent 72%),
-    radial-gradient(30% 45% at 8% 70%, rgba(79, 111, 168, 0.3), transparent 72%);
   pointer-events: none;
+  background-image:
+    radial-gradient(48% 62% at 84% 38%, rgba(236, 172, 58, 0.3), transparent 70%),
+    radial-gradient(46% 56% at 8% 88%, rgba(124, 77, 189, 0.38), transparent 70%),
+    radial-gradient(36% 40% at 52% -12%, rgba(200, 39, 45, 0.2), transparent 70%),
+    radial-gradient(1.3px 1.3px at 22px 34px, rgba(255, 255, 255, 0.95), transparent),
+    radial-gradient(1px 1px at 96px 126px, rgba(255, 255, 255, 0.75), transparent),
+    radial-gradient(1.7px 1.7px at 158px 66px, rgba(246, 220, 155, 0.95), transparent),
+    radial-gradient(1px 1px at 61px 188px, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1.2px 1.2px at 233px 41px, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 301px 172px, rgba(246, 220, 155, 0.8), transparent);
+  background-size:
+    auto, auto, auto, 190px 210px, 190px 210px, 190px 210px, 190px 210px, 330px 240px, 330px 240px;
 }
 
-.hero__inner {
+.hero__grid {
   position: relative;
-  padding-top: 72px;
-  padding-bottom: 80px;
-  text-align: center;
+  display: grid;
+  gap: 44px;
+  align-items: center;
+  padding-top: 56px;
+  padding-bottom: 72px;
+}
+
+@media (min-width: 900px) {
+  .hero__grid {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: 56px;
+    padding-top: 72px;
+    padding-bottom: 88px;
+  }
 }
 
 .hero__kicker {
   font-size: 0.8rem;
   font-weight: 600;
-  letter-spacing: 0.28em;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: #e6c985;
+  color: #e6c36b;
 }
 
 .hero__title {
   margin-top: 14px;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(2.7rem, 9vw, 5.4rem);
+  font-size: clamp(2.7rem, 6.6vw, 4.9rem);
   line-height: 1.04;
   letter-spacing: -0.01em;
   text-wrap: balance;
+  background: linear-gradient(180deg, #fff5cb 0%, #f4cb62 52%, #d6992a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 4px 26px rgba(240, 180, 60, 0.32));
 }
 
 .hero__sub {
-  margin-top: 10px;
+  margin-top: 8px;
   font-family: var(--font-display);
   font-style: italic;
-  font-size: clamp(1.2rem, 3vw, 1.6rem);
-  color: #e6c985;
+  font-size: clamp(1.2rem, 3vw, 1.65rem);
+  color: #f1d58c;
+}
+
+.hero__countdown {
+  display: inline-block;
+  margin-top: 18px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(246, 220, 155, 0.45);
+  background: rgba(246, 220, 155, 0.12);
+  color: #f6dc9b;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .hero__facts {
   list-style: none;
-  margin: 34px 0 0;
+  margin: 24px 0 0;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px 28px;
-  font-size: 1.05rem;
-  font-weight: 500;
+  gap: 10px;
 }
 
 .hero__facts li {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.96rem;
+  font-weight: 500;
 }
 
 .hero__facts svg {
-  color: #e6c985;
   flex-shrink: 0;
+  color: #e6c36b;
 }
 
-.hero__prices {
-  margin-top: 18px;
-  color: rgba(255, 255, 255, 0.82);
+.hero__tiers {
+  list-style: none;
+  margin: 22px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
 }
 
-.hero__prices strong {
-  color: #fff;
-  font-size: 1.15rem;
+.tier {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(246, 220, 155, 0.38);
+  background: linear-gradient(135deg, rgba(246, 220, 155, 0.17), rgba(255, 255, 255, 0.04));
+}
+
+.tier strong {
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  line-height: 1;
+  color: #f6dc9b;
+}
+
+.tier span {
+  display: grid;
+  line-height: 1.3;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.tier small {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .hero__cta {
-  margin-top: 34px;
+  margin-top: 30px;
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
   gap: 14px;
+}
+
+.hero__poster {
+  margin: 0;
+  justify-self: center;
+  width: 100%;
+  max-width: 340px;
+}
+
+.hero__poster img {
+  width: 100%;
+  height: auto;
+  border-radius: 18px;
+  border: 3px solid rgba(246, 220, 155, 0.85);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 90px rgba(240, 180, 60, 0.28);
+}
+
+@media (min-width: 900px) {
+  .hero__poster {
+    max-width: 430px;
+  }
+
+  .hero__poster img {
+    transform: rotate(1.8deg);
+  }
 }
 
 /* --- Secciones ------------------------------------------------------------ */
@@ -218,21 +384,42 @@
 /* --- Reserva: plano + resumen -------------------------------------------- */
 
 .booking {
-  margin-top: 32px;
+  margin-top: 28px;
   display: grid;
-  gap: 24px;
+  gap: 18px;
   grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "map"
+    "side"
+    "legend";
   align-items: start;
+}
+
+.booking__map {
+  grid-area: map;
+  min-width: 0;
+}
+
+.booking__side {
+  grid-area: side;
+}
+
+.booking__legend {
+  grid-area: legend;
 }
 
 @media (min-width: 980px) {
   .booking {
+    gap: 24px;
     grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-areas:
+      "map side"
+      "legend side";
   }
 
   .booking__side {
     position: sticky;
-    top: 90px;
+    top: 92px;
   }
 }
 
@@ -732,46 +919,213 @@
   color: var(--navy);
 }
 
+/* --- Instagram ---------------------------------------------------------------- */
+
+.insta {
+  padding: 56px 0 72px;
+}
+
+.insta__inner {
+  display: grid;
+  gap: 32px;
+  align-items: center;
+  padding: 40px 28px;
+  border-radius: 26px;
+  color: #fff;
+  background:
+    radial-gradient(60% 90% at 100% 0%, rgba(236, 172, 58, 0.22), transparent 70%),
+    linear-gradient(135deg, #1a0f4d 0%, #3a1d7a 58%, #6d2a73 100%);
+  box-shadow: var(--shadow);
+}
+
+@media (min-width: 820px) {
+  .insta__inner {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    padding: 48px 56px;
+    gap: 48px;
+  }
+}
+
+.insta__kicker {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #e6c36b;
+}
+
+.insta__title {
+  margin-top: 10px;
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 4.4vw, 2.4rem);
+  line-height: 1.15;
+  color: #fff;
+}
+
+.insta__text {
+  margin: 12px 0 24px;
+  max-width: 460px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.insta__card {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 28px 20px 24px;
+  border-radius: 20px;
+  background: #fff;
+  color: var(--ink);
+  text-decoration: none;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s;
+}
+
+.insta__card:hover {
+  transform: translateY(-3px);
+}
+
+.insta__ring {
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+  margin-bottom: 8px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #f9a03f, #e1306c 55%, #833ab4);
+}
+
+.insta__ring img {
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: #fff;
+  object-fit: cover;
+}
+
+.insta__handle {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.insta__name {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.insta__follow {
+  margin-top: 14px;
+  padding: 8px 22px;
+  border-radius: 999px;
+  background: linear-gradient(45deg, #f9a03f, #e1306c 55%, #833ab4);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 /* --- Footer ----------------------------------------------------------------- */
 
 .footer {
-  padding: 40px 0 44px;
-  background: var(--navy);
-  color: rgba(255, 255, 255, 0.8);
+  background: linear-gradient(180deg, #140b3a 0%, #0d0828 100%);
+  color: rgba(255, 255, 255, 0.78);
+  border-top: 3px solid #e6b84e;
 }
 
-.footer__inner {
+.footer__grid {
   display: grid;
-  gap: 18px;
-  justify-items: center;
-  text-align: center;
+  gap: 36px;
+  padding-top: 52px;
+  padding-bottom: 40px;
+}
+
+@media (min-width: 860px) {
+  .footer__grid {
+    grid-template-columns: 1.2fr 1.1fr 1fr;
+    gap: 56px;
+  }
 }
 
 .footer__logo {
-  height: 46px;
+  height: 48px;
   width: auto;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 10px;
   background: #fff;
 }
 
-.footer__info {
-  display: grid;
-  gap: 6px;
-  font-size: 0.95rem;
+.footer__brand p {
+  margin-top: 14px;
+  max-width: 280px;
+  font-size: 0.93rem;
 }
 
-.footer__info a {
+.footer__social {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.92rem;
   text-decoration: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  transition: background 0.15s, border-color 0.15s;
 }
 
-.footer__info svg {
+.footer__social:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #fff;
+}
+
+.footer__col h3 {
+  margin-bottom: 14px;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #e6c36b;
+}
+
+.footer__col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  font-size: 0.94rem;
+}
+
+.footer__col svg {
   margin-right: 6px;
   vertical-align: -2px;
+  color: #e6c36b;
 }
 
-.footer__legal {
+.footer__col a {
+  color: #fff;
+  text-underline-offset: 4px;
+}
+
+.footer__col a:hover {
+  color: #f6dc9b;
+}
+
+.footer__bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer__bottom-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  padding-top: 18px;
+  padding-bottom: 22px;
   font-size: 0.82rem;
   color: rgba(255, 255, 255, 0.55);
 }
@@ -782,8 +1136,8 @@
 }
 
 @media (max-width: 979px) {
-  .footer {
-    padding-bottom: 100px;
+  .footer__bottom-inner {
+    padding-bottom: 96px;
   }
 }
 
@@ -792,8 +1146,280 @@
     padding: 48px 0;
   }
 
-  .hero__inner {
-    padding-top: 52px;
-    padding-bottom: 60px;
+  .hero__grid {
+    padding-top: 44px;
+    padding-bottom: 56px;
+  }
+}
+
+/* ==========================================================================
+   Ajustes mobile-first (celulares)
+   ========================================================================== */
+
+/* --- Plano: vista completa, números ocultos y rótulos cortos ----------------- */
+
+.seatmap__content--compacto .seat {
+  font-size: 0;
+  border-width: 1px;
+  border-radius: 24%;
+}
+
+.seatmap__content--resumen .seat,
+.seatmap__content--resumen .seatmap__element {
+  cursor: zoom-in;
+}
+
+.seatmap__content--resumen .seat--sold,
+.seatmap__content--resumen .seat--blocked,
+.seatmap__content--resumen .seat--reserved {
+  cursor: zoom-in;
+}
+
+.seat--sold,
+.seat--blocked,
+.seat--reserved {
+  cursor: not-allowed;
+}
+
+.seatmap__todo {
+  gap: 6px;
+}
+
+@media (max-width: 639px) {
+  .seatmap {
+    padding: 12px 8px 12px;
+    border-radius: 12px;
+  }
+
+  .seatmap__fila-txt {
+    display: none;
+  }
+
+  .seatmap__label {
+    padding-right: 4px;
+    text-align: right;
+    font-size: 0.62rem;
+  }
+
+  .seatmap__stage {
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+  }
+
+  .seatmap__toolbar {
+    margin: 0 2px 10px;
+    gap: 8px;
+  }
+
+  .seatmap__hint {
+    flex: 1 1 100%;
+    font-size: 0.86rem;
+  }
+
+  .seatmap__zoom {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .seatmap__todo {
+    margin-right: auto;
+  }
+}
+
+/* --- Leyenda ---------------------------------------------------------------- */
+
+.legend__price {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.legend__price-main {
+  display: grid;
+  line-height: 1.25;
+}
+
+.legend__price-main strong {
+  font-size: 1.08rem;
+  color: var(--navy);
+}
+
+.legend__price-main small {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.legend__badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #e6f6ee;
+  color: #14603f;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.legend__badge--out {
+  background: #fdecea;
+  color: #8a2218;
+}
+
+.legend__list--inline {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 520px) {
+  .legend__list--inline {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}
+
+/* --- Resumen: en celular solo aparece cuando hay butacas elegidas ----------------- */
+
+@media (max-width: 979px) {
+  .summary--vacio {
+    display: none;
+  }
+}
+
+/* --- Cómo comprar: pasos compactos en celular ------------------------------------- */
+
+@media (max-width: 639px) {
+  .steps {
+    margin-top: 28px;
+    gap: 12px;
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    column-gap: 14px;
+    align-items: start;
+    padding: 16px 16px 16px 14px;
+  }
+
+  .step__num {
+    position: static;
+    grid-row: 1 / span 2;
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+    align-self: center;
+  }
+
+  .step__icon {
+    display: none;
+  }
+
+  .step__title {
+    margin-top: 0;
+    font-size: 1rem;
+  }
+
+  .step__text {
+    margin-top: 2px;
+    font-size: 0.9rem;
+  }
+}
+
+/* --- Portada en celular ----------------------------------------------------------- */
+
+@media (max-width: 639px) {
+  .hero__grid {
+    gap: 32px;
+    padding-top: 32px;
+    padding-bottom: 44px;
+  }
+
+  .hero__title {
+    margin-top: 10px;
+  }
+
+  .hero__facts {
+    margin-top: 20px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .hero__facts li {
+    border-radius: 14px;
+    padding: 10px 14px;
+    align-items: flex-start;
+    font-size: 0.93rem;
+  }
+
+  .hero__facts svg {
+    margin-top: 3px;
+  }
+
+  .hero__tiers {
+    margin-top: 14px;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .tier {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 12px 14px;
+  }
+
+  .hero__cta {
+    margin-top: 22px;
+    flex-direction: column;
+  }
+
+  .hero__cta .btn {
+    width: 100%;
+  }
+
+  .section__title {
+    text-align: left;
+  }
+
+  .section__lead {
+    text-align: left;
+    margin-left: 0;
+  }
+
+  .insta__inner {
+    padding: 28px 20px;
+  }
+
+  .insta__card {
+    padding: 22px 16px 20px;
+  }
+
+  .insta__copy .btn {
+    width: 100%;
+  }
+}
+
+/* Header en celular: el botón no se parte en dos líneas */
+.navbar__cta {
+  white-space: nowrap;
+}
+
+@media (max-width: 479px) {
+  .navbar__inner {
+    gap: 12px;
+    min-height: 64px;
+  }
+
+  .navbar__brand img {
+    height: 40px;
+  }
+
+  .navbar__cta {
+    padding-left: 14px;
+    padding-right: 14px;
   }
 }

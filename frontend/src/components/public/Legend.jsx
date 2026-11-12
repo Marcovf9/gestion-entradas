@@ -20,17 +20,18 @@ export default function Legend({ zonas, butacas }) {
         <h3 className="legend__title">Precios</h3>
         <ul className="legend__list">
           {categorias.map((z) => (
-            <li key={z.id} className="legend__item">
+            <li key={z.id} className="legend__item legend__price">
               <span
                 className="legend__swatch legend__swatch--zone"
                 style={{ "--zc": z.color }}
                 aria-hidden="true"
               />
-              <span>
-                <strong>{formatPrice(z.precio)}</strong> · {z.nombre}
-                <span className="legend__count">
-                  {z.libres > 0 ? ` — quedan ${z.libres}` : " — agotadas"}
-                </span>
+              <span className="legend__price-main">
+                <strong>{formatPrice(z.precio)}</strong>
+                <small>{z.nombre}</small>
+              </span>
+              <span className={`legend__badge ${z.libres === 0 ? "legend__badge--out" : ""}`}>
+                {z.libres > 0 ? `Quedan ${z.libres}` : "Agotadas"}
               </span>
             </li>
           ))}
