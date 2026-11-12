@@ -29,8 +29,6 @@ public class ZonaService {
                 .precio(dto.getPrecio())
                 .color(dto.getColor())
                 .displayOrder(dto.getDisplayOrder())
-                .gridColumn(dto.getGridColumn())
-                .skewDeg(dto.getSkewDeg() != null ? dto.getSkewDeg() : 0)
                 .build();
 
         return toDTO(zonaRepository.save(zona));
@@ -51,8 +49,6 @@ public class ZonaService {
         zona.setPrecio(dto.getPrecio());
         zona.setColor(dto.getColor());
         zona.setDisplayOrder(dto.getDisplayOrder());
-        zona.setGridColumn(dto.getGridColumn());
-        zona.setSkewDeg(dto.getSkewDeg() != null ? dto.getSkewDeg() : 0);
 
         return toDTO(zonaRepository.save(zona));
     }
@@ -73,8 +69,6 @@ public class ZonaService {
                 .precio(zona.getPrecio())
                 .color(zona.getColor())
                 .displayOrder(zona.getDisplayOrder())
-                .gridColumn(zona.getGridColumn())
-                .skewDeg(zona.getSkewDeg())
                 .build();
     }
 }

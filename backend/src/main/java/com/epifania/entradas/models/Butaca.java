@@ -29,6 +29,11 @@ public class Butaca {
     @Column(nullable = false)
     private Integer columna;
 
+    /** Posición horizontal en el plano, en medios asientos (un asiento ocupa 2). */
+    @Builder.Default
+    @Column(name = "pos_x", nullable = false)
+    private Integer posX = 0;
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     @Column(nullable = false, length = 20)

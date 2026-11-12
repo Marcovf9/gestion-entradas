@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "eventos")
@@ -23,6 +24,11 @@ public class Evento {
 
     @Column(nullable = false)
     private LocalDate fecha;
+
+    private LocalTime hora;
+
+    @Column(length = 200)
+    private String lugar;
 
     @Builder.Default
     @Column(nullable = false)

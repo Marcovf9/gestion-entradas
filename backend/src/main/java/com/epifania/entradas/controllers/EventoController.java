@@ -1,6 +1,7 @@
 package com.epifania.entradas.controllers;
 
 import com.epifania.entradas.dto.ButacaDTO;
+import com.epifania.entradas.dto.ElementoMapaDTO;
 import com.epifania.entradas.dto.EventoDTO;
 import com.epifania.entradas.dto.ZonaDTO;
 import com.epifania.entradas.services.EventoService;
@@ -29,5 +30,10 @@ public class EventoController {
     @GetMapping("/{id}/butacas")
     public List<ButacaDTO> listarButacas(@PathVariable Long id) {
         return eventoService.listarButacas(id);
+    }
+
+    @GetMapping("/{id}/elementos")
+    public List<ElementoMapaDTO> listarElementos(@PathVariable Long id) {
+        return eventoService.listarElementos(id);
     }
 }

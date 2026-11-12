@@ -6,7 +6,6 @@ import com.epifania.entradas.models.Butaca;
 import com.epifania.entradas.models.Evento;
 import com.epifania.entradas.models.Zona;
 import com.epifania.entradas.models.enums.EstadoButaca;
-import com.epifania.entradas.models.enums.GridColumn;
 import com.epifania.entradas.repositories.ButacaRepository;
 import com.epifania.entradas.repositories.EventoRepository;
 import com.epifania.entradas.repositories.ZonaRepository;
@@ -58,8 +57,6 @@ class ReservaServiceIntegrationTest {
                 .precio(25000)
                 .color("#f5d742")
                 .displayOrder(1)
-                .gridColumn(GridColumn.CENTRO)
-                .skewDeg(0)
                 .build());
 
         Butaca butaca = butacaRepository.save(Butaca.builder()
@@ -140,5 +137,58 @@ class ReservaServiceIntegrationTest {
         assertEquals(1, exitos.get(), "Solo una de las dos reservas concurrentes debería haber ganado");
         assertEquals(1, conflictos.get());
         assertEquals(EstadoButaca.RESERVADA, butacaRepository.findById(butacaDisponibleId).orElseThrow().getEstado());
+    }
+
+    @Test
+    void unaButacaBloqueadaNoSePuedeReservar() {
+        var butaca = butacaRepository.findById(butacaDisponibleId).orElseThrow();
+        butaca.setEstado(EstadoButaca.BLOQUEADA);
+        butacaRepository.save(butaca);
+
+        var ex = assertThrows(ConflictoReservaException.class, () -> reservaService.crearReserva(new ReservaRequestDTO(
+                List.of(butacaDisponibleId), "Ana", "30111222", "ana@example.com")));
+
+        assertEquals(List.of(butacaDisponibleId), ex.getConflictSeatIds());
+        assertEquals(EstadoButaca.BLOQUEADA, butacaRepository.findById(butacaDisponibleId).orElseThrow().getEstado());
+    }
+
+    @Test
+    void confirmarPagosPasaTodoElGrupoAVendida() {
+        reservaService.crearReserva(new ReservaRequestDTO(
+                List.of(butacaDisponibleId), "Ana", "30111222", "ana@example.com"));
+
+        reservaService.confirmarPagos(List.of(butacaDisponibleId));
+
+        var butaca = butacaRepository.findById(butacaDisponibleId).orElseThrow();
+        assertEquals(EstadoButaca.VENDIDA, butaca.getEstado());
+        assertNull(butaca.getReservaHasta());
+        assertEquals("Ana", butaca.getClienteNombre(), "al vender se conservan los datos del comprador");
+        assertEquals(1, reservaService.listarVendidas().size());
+    }
+
+    @Test
+    void noSePuedeConfirmarUnaButacaQueNoEstaReservada() {
+        assertThrows(IllegalArgumentException.class,
+                () -> reservaService.confirmarPagos(List.of(butacaDisponibleId)));
+    }
+
+    @Test
+    void liberarVuelveLaButacaADisponibleYBorraLosDatosDelCliente() {
+        reservaService.crearReserva(new ReservaRequestDTO(
+                List.of(butacaDisponibleId), "Ana", "30111222", "ana@example.com"));
+        reservaService.confirmarPagos(List.of(butacaDisponibleId));
+
+        reservaService.liberar(List.of(butacaDisponibleId));
+
+        var butaca = butacaRepository.findById(butacaDisponibleId).orElseThrow();
+        assertEquals(EstadoButaca.DISPONIBLE, butaca.getEstado());
+        assertNull(butaca.getClienteNombre());
+        assertNull(butaca.getClienteDni());
+        assertNull(butaca.getClienteEmail());
+    }
+
+    @Test
+    void noSePuedeLiberarUnaButacaDisponible() {
+        assertThrows(IllegalArgumentException.class, () -> reservaService.liberar(List.of(butacaDisponibleId)));
     }
 }

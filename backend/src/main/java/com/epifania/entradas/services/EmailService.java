@@ -8,7 +8,9 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
@@ -22,7 +24,9 @@ import java.util.Locale;
 @Slf4j
 public class EmailService {
 
-    private static final DateTimeFormatter FORMATO_HORA = DateTimeFormatter.ofPattern("HH:mm 'del' dd/MM/yyyy");
+    private static final Locale ES_AR = Locale.forLanguageTag("es-AR");
+    private static final DateTimeFormatter FORMATO_VENCE = DateTimeFormatter.ofPattern("HH:mm 'hs'");
+    private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", ES_AR);
 
     private final JavaMailSender mailSender;
     private final String remitente;
@@ -37,7 +41,9 @@ public class EmailService {
     }
 
     @Async
-    public void enviarConfirmacionReserva(String destinatario, String nombreCliente, List<ReservaSeatDTO> seats, LocalDateTime vence) {
+    public void enviarConfirmacionReserva(String destinatario, String nombreCliente, List<ReservaSeatDTO> seats,
+                                          LocalDateTime vence, String eventoNombre, LocalDate fecha,
+                                          LocalTime hora, String lugar) {
         if (!habilitado) {
             log.info("Envío de email deshabilitado (no hay spring.mail.username configurado); se omite confirmación a {}", destinatario);
             return;
@@ -46,20 +52,35 @@ public class EmailService {
             int total = seats.stream().mapToInt(ReservaSeatDTO::getPrecio).sum();
             StringBuilder detalle = new StringBuilder();
             for (ReservaSeatDTO seat : seats) {
-                detalle.append(String.format(Locale.forLanguageTag("es-AR"),
-                        "- %s, fila %d, butaca %d ($%,d)%n",
-                        seat.getZonaNombre(), seat.getFila(), seat.getColumna(), seat.getPrecio()));
+                detalle.append(String.format(ES_AR, "- Fila %d, butaca %d (%s) — $%,d%n",
+                        seat.getFila(), seat.getColumna(), seat.getZonaNombre(), seat.getPrecio()));
             }
+
+            StringBuilder texto = new StringBuilder();
+            texto.append("Hola ").append(nombreCliente).append(",\n\n");
+            texto.append("Tu reserva para \"").append(eventoNombre).append("\" quedó registrada.\n");
+            if (fecha != null) {
+                texto.append(fecha.format(FORMATO_FECHA));
+                if (hora != null) {
+                    texto.append(" · ").append(hora.format(FORMATO_VENCE));
+                }
+                texto.append("\n");
+            }
+            if (lugar != null && !lugar.isBlank()) {
+                texto.append(lugar).append("\n");
+            }
+            texto.append("\nButacas:\n").append(detalle);
+            texto.append(String.format(ES_AR, "%nTotal: $%,d%n%n", total));
+            texto.append("Tenés hasta las ").append(vence.format(FORMATO_VENCE))
+                    .append(" para enviar el comprobante de pago por WhatsApp; ")
+                    .append("pasado ese horario las butacas se liberan automáticamente.\n\n")
+                    .append("Epifanía Dance");
 
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(remitente);
             message.setTo(destinatario);
-            message.setSubject("Reserva de entradas - Latidos de la Historia");
-            message.setText(String.format(Locale.forLanguageTag("es-AR"),
-                    "Hola %s,%n%nTu reserva quedó registrada:%n%n%s%nTotal: $%,d%n%n"
-                            + "Tenés hasta las %s para confirmar el pago, o la reserva se libera automáticamente.%n%n"
-                            + "Latidos de la Historia",
-                    nombreCliente, detalle, total, vence.format(FORMATO_HORA)));
+            message.setSubject("Tu reserva para " + eventoNombre);
+            message.setText(texto.toString());
 
             mailSender.send(message);
         } catch (Exception e) {

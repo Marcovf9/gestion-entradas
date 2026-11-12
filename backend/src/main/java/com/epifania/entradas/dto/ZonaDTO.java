@@ -1,6 +1,5 @@
 package com.epifania.entradas.dto;
 
-import com.epifania.entradas.models.enums.GridColumn;
 import lombok.*;
 
 @Getter
@@ -15,6 +14,4 @@ public class ZonaDTO {
     private Integer precio;
     private String color;
     private Integer displayOrder;
-    private GridColumn gridColumn;
-    private Integer skewDeg;
 }
