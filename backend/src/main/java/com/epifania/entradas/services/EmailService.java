@@ -52,8 +52,8 @@ public class EmailService {
             int total = seats.stream().mapToInt(ReservaSeatDTO::getPrecio).sum();
             StringBuilder detalle = new StringBuilder();
             for (ReservaSeatDTO seat : seats) {
-                detalle.append(String.format(ES_AR, "- Fila %d, butaca %d (%s) — $%,d%n",
-                        seat.getFila(), seat.getColumna(), seat.getZonaNombre(), seat.getPrecio()));
+                detalle.append(String.format(ES_AR, "- Fila %d, butaca %d — $%,d · %s%n",
+                        seat.getFila(), seat.getColumna(), seat.getPrecio(), seat.getZonaNombre()));
             }
 
             StringBuilder texto = new StringBuilder();

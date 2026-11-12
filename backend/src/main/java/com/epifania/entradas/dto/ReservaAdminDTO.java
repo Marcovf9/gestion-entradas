@@ -22,4 +22,6 @@ public class ReservaAdminDTO {
     private String clienteDni;
     private String clienteEmail;
     private LocalDateTime reservaHasta;
+    /** Solo para reservas (no vendidas): segundos que faltan para que venza. */
+    private Long segundosRestantes;
 }

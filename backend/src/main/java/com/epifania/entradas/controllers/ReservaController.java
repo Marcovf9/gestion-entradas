@@ -27,13 +27,13 @@ public class ReservaController {
     // -- Todo lo de abajo requiere JWT de admin (ver SecurityConfig) --------
 
     @GetMapping("/activas")
-    public List<ReservaAdminDTO> listarActivas() {
-        return reservaService.listarActivas();
+    public List<ReservaAdminDTO> listarActivas(@RequestParam Long eventoId) {
+        return reservaService.listarActivas(eventoId);
     }
 
     @GetMapping("/vendidas")
-    public List<ReservaAdminDTO> listarVendidas() {
-        return reservaService.listarVendidas();
+    public List<ReservaAdminDTO> listarVendidas(@RequestParam Long eventoId) {
+        return reservaService.listarVendidas(eventoId);
     }
 
     @PostMapping("/{seatId}/confirmar")

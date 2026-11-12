@@ -13,4 +13,6 @@ import java.util.List;
 public class ReservaResponseDTO {
     private List<ReservaSeatDTO> seats;
     private LocalDateTime expiresAt;
+    /** Segundos que faltan para que venza la reserva; evita depender de la zona horaria del cliente. */
+    private Long segundosRestantes;
 }

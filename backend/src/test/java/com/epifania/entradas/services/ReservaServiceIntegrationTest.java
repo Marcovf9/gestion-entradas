@@ -38,6 +38,7 @@ class ReservaServiceIntegrationTest {
     private ButacaRepository butacaRepository;
 
     private Long butacaDisponibleId;
+    private Long eventoId;
 
     @BeforeEach
     void setUp() {
@@ -50,6 +51,8 @@ class ReservaServiceIntegrationTest {
                 .fecha(LocalDate.now().plusMonths(1))
                 .activo(true)
                 .build());
+
+        eventoId = evento.getId();
 
         Zona zona = zonaRepository.save(Zona.builder()
                 .evento(evento)
@@ -88,7 +91,7 @@ class ReservaServiceIntegrationTest {
         butaca.setReservaHasta(java.time.LocalDateTime.now().minusMinutes(1));
         butacaRepository.save(butaca);
 
-        var activas = reservaService.listarActivas();
+        var activas = reservaService.listarActivas(eventoId);
 
         assertTrue(activas.stream().noneMatch(r -> r.getId().equals(butacaDisponibleId)));
         assertEquals(EstadoButaca.DISPONIBLE, butacaRepository.findById(butacaDisponibleId).orElseThrow().getEstado());
@@ -163,7 +166,7 @@ class ReservaServiceIntegrationTest {
         assertEquals(EstadoButaca.VENDIDA, butaca.getEstado());
         assertNull(butaca.getReservaHasta());
         assertEquals("Ana", butaca.getClienteNombre(), "al vender se conservan los datos del comprador");
-        assertEquals(1, reservaService.listarVendidas().size());
+        assertEquals(1, reservaService.listarVendidas(eventoId).size());
     }
 
     @Test
@@ -190,5 +193,27 @@ class ReservaServiceIntegrationTest {
     @Test
     void noSePuedeLiberarUnaButacaDisponible() {
         assertThrows(IllegalArgumentException.class, () -> reservaService.liberar(List.of(butacaDisponibleId)));
+    }
+
+    @Test
+    void losListadosDelAdminSoloIncluyenElEventoPedido() {
+        reservaService.crearReserva(new ReservaRequestDTO(
+                List.of(butacaDisponibleId), "Ana", "30111222", "ana@example.com"));
+
+        assertEquals(1, reservaService.listarActivas(eventoId).size());
+        assertTrue(reservaService.listarActivas(eventoId + 999).isEmpty());
+
+        reservaService.confirmarPagos(List.of(butacaDisponibleId));
+        assertEquals(1, reservaService.listarVendidas(eventoId).size());
+        assertTrue(reservaService.listarVendidas(eventoId + 999).isEmpty());
+    }
+
+    @Test
+    void laReservaDevuelveLosSegundosRestantesSinDependerDeZonasHorarias() {
+        var resultado = reservaService.crearReserva(new ReservaRequestDTO(
+                List.of(butacaDisponibleId), "Ana", "30111222", "ana@example.com"));
+
+        assertTrue(resultado.getSegundosRestantes() > 29 * 60 && resultado.getSegundosRestantes() <= 30 * 60,
+                "debería ser ~30 minutos, fue " + resultado.getSegundosRestantes());
     }
 }

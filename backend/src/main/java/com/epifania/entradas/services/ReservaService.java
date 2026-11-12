@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -78,6 +79,7 @@ public class ReservaService {
         return ReservaResponseDTO.builder()
                 .seats(seatDTOs)
                 .expiresAt(vence)
+                .segundosRestantes(Duration.between(ahora, vence).getSeconds())
                 .build();
     }
 
@@ -88,16 +90,16 @@ public class ReservaService {
      * ESTA transacción sea de escritura.
      */
     @Transactional
-    public List<ReservaAdminDTO> listarActivas() {
+    public List<ReservaAdminDTO> listarActivas(Long eventoId) {
         expirarReservasVencidas();
-        return butacaRepository.findActivasConHold(EstadoButaca.RESERVADA, LocalDateTime.now()).stream()
+        return butacaRepository.findActivasConHold(eventoId, EstadoButaca.RESERVADA, LocalDateTime.now()).stream()
                 .map(this::toAdminDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<ReservaAdminDTO> listarVendidas() {
-        return butacaRepository.findByEstadoConZona(EstadoButaca.VENDIDA).stream()
+    public List<ReservaAdminDTO> listarVendidas(Long eventoId) {
+        return butacaRepository.findByEstadoConZona(eventoId, EstadoButaca.VENDIDA).stream()
                 .map(this::toAdminDTO)
                 .collect(Collectors.toList());
     }
@@ -203,6 +205,9 @@ public class ReservaService {
                 .clienteDni(b.getClienteDni())
                 .clienteEmail(b.getClienteEmail())
                 .reservaHasta(b.getReservaHasta())
+                .segundosRestantes(b.getEstado() == EstadoButaca.RESERVADA && b.getReservaHasta() != null
+                        ? Math.max(0, Duration.between(LocalDateTime.now(), b.getReservaHasta()).getSeconds())
+                        : null)
                 .build();
     }
 }

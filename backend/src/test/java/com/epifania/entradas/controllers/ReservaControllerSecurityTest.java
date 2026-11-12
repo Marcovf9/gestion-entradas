@@ -26,8 +26,8 @@ class ReservaControllerSecurityTest {
 
     @Test
     void elPublicoNoPuedeVerReservasNiConfirmarNiLiberar() throws Exception {
-        mvc.perform(get("/api/reservas/activas")).andExpect(status().isForbidden());
-        mvc.perform(get("/api/reservas/vendidas")).andExpect(status().isForbidden());
+        mvc.perform(get("/api/reservas/activas?eventoId=1")).andExpect(status().isForbidden());
+        mvc.perform(get("/api/reservas/vendidas?eventoId=1")).andExpect(status().isForbidden());
         mvc.perform(post("/api/reservas/confirmar").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"seatIds\":[1]}")).andExpect(status().isForbidden());
         mvc.perform(post("/api/reservas/liberar").contentType(MediaType.APPLICATION_JSON)
