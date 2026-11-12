@@ -33,6 +33,17 @@ Los precios, la fecha, la hora y el lugar se editan desde el panel admin (pesta�
 (`pos_x`, en medios asientos) y la cabina es un elemento del mapa (`elementos_mapa`), todo cargado
 por la migración `V3__el_deseo_de_existir.sql`.
 
+## Ramas y despliegue
+
+| Rama | Para qué sirve |
+| --- | --- |
+| `feature/*`, `chore/*` | Trabajo nuevo. Se crean a partir de `develop`. |
+| `develop` | Integración: acá se juntan los cambios y se prueban. **No se despliega.** |
+| `produccion` | Lo que está online. **Render despliega solo desde esta rama.** |
+
+Flujo: rama nueva desde `develop` → PR a `develop` → cuando está probado, PR de `develop` a
+`produccion` → Render redespliega automáticamente. `main` quedó sin uso.
+
 ## Desarrollo local
 
 1) Base de datos: levantá un Postgres local (por ejemplo `docker run --name entradas-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=entradas -p 5432:5432 -d postgres:16-alpine`), o apuntá `SPRING_DATASOURCE_URL` a uno remoto.
@@ -61,7 +72,7 @@ recibe las reservas, formato internacional sin `+`).
 
 `render.yaml` es un [Blueprint de Render](https://render.com/docs/blueprint-spec) que
 define los tres recursos (Postgres, backend, frontend) en un solo archivo. En el dashboard
-de Render: **New > Blueprint**, conectar este repo, rama `develop` (o `main`). Render crea
+de Render: **New > Blueprint**, conectar este repo, rama `produccion`. Render crea
 la base y ambos servicios, y cablea automáticamente host/usuario/contraseña de la base al
 backend — no hace falta pegar ningún connection string a mano. Quedan como secrets a cargar
 manualmente en el dashboard (marcados `sync: false`): `JWT_SECRET` (generar con
