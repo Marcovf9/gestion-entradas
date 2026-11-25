@@ -1,0 +1,23 @@
+# Base de datos local para desarrollo. Los valores coinciden con los defaults de
+# backend/src/main/resources/application.properties, así que no hace falta configurar nada:
+#   docker compose up -d
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: entradas_db
+    environment:
+      POSTGRES_DB: entradas
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - entradas_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d entradas"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  entradas_pgdata:
