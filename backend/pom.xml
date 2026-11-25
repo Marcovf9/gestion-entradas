@@ -13,7 +13,7 @@
 	<artifactId>entradas-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>entradas-backend</name>
-	<description>Backend de venta de entradas - Latidos de la Historia</description>
+	<description>API de venta de entradas con reserva de butacas - El Deseo de Existir (Epifanía Dance)</description>
 
 	<properties>
 		<java.version>21</java.version>

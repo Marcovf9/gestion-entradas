@@ -15,7 +15,7 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("Entradas API")
-                        .description("Venta de entradas - Latidos de la Historia")
+                        .description("Venta de entradas con reserva de butacas - El Deseo de Existir (Epifanía Dance)")
                         .version("v1"))
                 .components(new Components()
                         .addSecuritySchemes("bearerAuth", new SecurityScheme()
